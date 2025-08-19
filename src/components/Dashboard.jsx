@@ -1,10 +1,10 @@
 import React from "react";
 import { Flame, BarChart2, Crown, Timer as TimerIcon, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar } from "recharts";
 import { useApp } from "../App";
 import { bmi, formatDate } from "../lib/utils";
-import { Button } from "./components/ui/button";
+import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
