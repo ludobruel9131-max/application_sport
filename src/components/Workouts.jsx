@@ -9,8 +9,7 @@ import { generateAutoWorkout, EXERCISES, equipmentOptions } from "../data";
 import ActiveSession from "./ActiveSession";
 import CreateCustomWorkout from "./CreateCustomWorkout";
 import MyCustomWorkouts from "./MyCustomWorkouts";
-import { caloriesForExercise } from "../lib/utils";
-
+import { caloriesForExercise } from "../../lib/utils";
 function Workouts() {
     const { state, setState } = useApp();
     const [equipment, setEquipment] = useState([]);
