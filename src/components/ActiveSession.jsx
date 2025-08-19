@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { CheckCircle2, Play, ArrowRight, Calendar as CalendarIcon } from "lucide-react";
 import { useApp } from "../App";
 import { EXERCISES } from "../data";
-import { caloriesForExercise, formatDate } from "../lib/utils";
+import { caloriesForExercise, formatDate } from "../../lib/utils";
 import { useNavigate } from "react-router-dom";
 
 function ActiveSession() {
