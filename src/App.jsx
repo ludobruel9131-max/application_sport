@@ -3,11 +3,11 @@ import { BrowserRouter, Routes, Route, NavLink, useNavigate } from "react-router
 import { motion, AnimatePresence } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, AreaChart, Area } from "recharts";
 import { Calendar as CalendarIcon, Timer as TimerIcon, Flame, Trophy, Settings, BarChart2, Dumbbell, Home, BookOpenText, ChevronRight, Star, Search, Filter, Play, Pause, RotateCcw, Crown, Bell, Heart, Gift, Shield, ArrowRight, CheckCircle2, Users, Circle, PlusCircle, Pen, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "./components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "./components/ui/input";
+import { Switch } from "./components/ui/switch";
+import { Slider } from "./components/ui/slider";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 // Importe les composants et les utilitaires
