@@ -4,7 +4,7 @@ import { Button } from "./components/ui/button";
 import { PlusCircle, Trash2, ArrowRight } from "lucide-react";
 import { Input } from "./components/ui/input";
 import { Slider } from "./components/ui/slider";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { useApp } from "../App";
 import { EXERCISES } from "../data";
 
