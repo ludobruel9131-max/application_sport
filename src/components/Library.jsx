@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Input } from "./components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Input } from "./ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { Star, Search, BookOpenText } from "lucide-react";
 import { useApp } from "../App";
 import { EXERCISES, equipmentOptions } from "../data";
