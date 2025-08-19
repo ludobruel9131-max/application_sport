@@ -23,6 +23,7 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "uid": "^2.0.2"
+    "react-router-dom": "^6.25.1"
   },
   "eslintConfig": {
     "extends": [
