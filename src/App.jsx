@@ -48,7 +48,6 @@ const Challenges = () => <PlaceholderPage title="Challenges" />;
 const Nutrition = () => <PlaceholderPage title="Nutrition" />;
 const Stats = () => <PlaceholderPage title="Progression" />;
 const Calendar = () => <PlaceholderPage title="Calendrier" />;
-const Profile = () => <PlaceholderPage title="Profil" />;
 
 // Composant principal de l'application
 function App() {
