@@ -3,7 +3,7 @@ import { Flame, BarChart2, Crown, Timer as TimerIcon, CheckCircle2 } from "lucid
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar } from "recharts";
 import { useApp } from "../App";
-import { bmi, formatDate } from "../utils";
+import { bmi, formatDate } from "../lib/utils";
 import { Button } from "./components/ui/button";
 import { useNavigate } from "react-router-dom";
 
