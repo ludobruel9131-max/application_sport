@@ -1,7 +1,7 @@
 {
-  "name": "lionfit-app",
+  "name": "application_sport",
   "version": "1.0.0",
-  "description": "Une application de fitness pour les champions.",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "react-scripts start",
@@ -9,35 +9,5 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "dependencies": {
-    "@radix-ui/react-icons": "^1.3.0",
-    "@radix-ui/react-slider": "^1.1.2",
-    "@radix-ui/react-slot": "^1.0.2",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.0",
-    "framer-motion": "^11.0.24",
-    "lucide-react": "^0.363.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3",
-    "recharts": "^2.12.3",
-    "tailwind-merge": "^2.2.2",
-    "tailwindcss-animate": "^1.0.7",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "react-scripts": "^5.0.1"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  ...
 }
