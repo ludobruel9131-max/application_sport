@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Dumbbell, RotateCcw, Play } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/ui/select";
+import { Slider } from "./components/ui/slider";
+import { Button } from "./components/ui/button";
 import { useApp } from "../App";
 import { generateAutoWorkout, EXERCISES, equipmentOptions } from "../data";
 import ActiveSession from "./ActiveSession";
