@@ -7,10 +7,7 @@ import { Trophy } from 'lucide-react';
 function Dashboard() {
   const { state } = useContext(AppContext);
 
-  // Correction : Vérifier si `state` et `state.profile` sont définis avant d'y accéder.
-  // Cela évite l'erreur "Cannot read properties of undefined".
   if (!state || !state.profile) {
-    // Vous pouvez retourner un indicateur de chargement ou un message d'erreur ici.
     return (
       <div className="space-y-4">
         <h2 className="text-3xl font-bold tracking-tight">Tableau de bord</h2>
