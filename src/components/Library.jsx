@@ -59,4 +59,4 @@ function Library() {
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base flex items-center justify-between">
                                 <span>{ex.name}</span>
-                                <button onClick={() => toggleFav(ex.id)} className={`p-1 rounded-full ${state.favorites.includes(ex.id) ? "text-yellow-400" : "text-zinc-400 hover:text-zinc-200"}`} title="Ajouter aux favoris">
+                               <button onClick={() => toggleFav(ex.id)} className={`p-1 rounded-full ${state.favorites.includes(ex.id) ? "text-yellow-400" : "text-zinc-400 hover:text-zinc-200"}`} title="Ajouter aux favoris" />
