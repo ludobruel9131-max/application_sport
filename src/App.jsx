@@ -1,40 +1,29 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import { BrowserRouter, Routes, Route, Outlet, NavLink, useParams, useNavigate, useLocation } from "react-router-dom";
-import { Dumbbell, User, PlusCircle, Settings, LayoutDashboard, ChevronRight, Trash2, Pause, Play, RotateCcw, Star, Search, Filter, Trophy, BookOpenText, BarChart2, Home, BarChart, Calendar, List, X, PlayCircle, Clock } from "lucide-react";
+import { Dumbbell, User, PlusCircle, Settings, LayoutDashboard, ChevronRight, Trash2, Pause, Play, RotateCcw, Star, Search, Filter, Trophy, BookOpenText, BarChart2, Home, BarChart, Calendar, List, X, PlayCircle, Clock, ChevronDown, Check } from "lucide-react";
 import { ToastContainer, toast } from 'react-toastify';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Label } from './components/ui/label';
 import { Separator } from './components/ui/separator';
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// Nous ne pouvons pas importer de CSS dans cet environnement,
-// mais `react-toastify` fonctionne sans son CSS de base. Les toast peuvent être stylisés via
-// les props. Pour l'instant, nous le laissons tel quel pour que l'application compile.
-// Si un utilisateur le souhaite, il peut ajouter un CDN pour le CSS de 'react-toastify'.
-
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, updateDoc, deleteDoc } from "firebase/firestore";
+import { getAuth, signInWithCustomToken, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, setDoc, onSnapshot, collection, query, where, getDocs, updateDoc, deleteDoc } from "firebase/firestore";
 
-// Les données et utilitaires consolidés de l'application
 import { v4 as uuidv4 } from 'uuid';
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
 
-/**
- * Fonction utilitaire pour combiner des classes CSS de manière conditionnelle
- * et fusionner les classes Tailwind pour éviter les conflits.
- */
+// Composants Shadcn UI
 function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// Composants Shadcn UI
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
@@ -371,8 +360,6 @@ const AppProvider = ({ children }) => {
 
   useEffect(() => {
     const initialize = async () => {
-      // S'assure que les variables sont définies avant d'initialiser Firebase.
-      // Cela évite les erreurs de compilation sur des plateformes comme Netlify.
       if (typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
         try {
           const firebaseConfig = JSON.parse(__firebase_config);
@@ -381,7 +368,6 @@ const AppProvider = ({ children }) => {
           const db = getFirestore(app);
           setDb(db);
           setAuth(auth);
-
           const userAuth = await signInWithCustomToken(auth, __initial_auth_token);
           setUserId(userAuth.user.uid);
           setState((s) => ({ ...s, isAuthReady: true }));
@@ -513,7 +499,6 @@ const generateAutoWorkout = (profile) => {
   const selectedExercises = [];
   const numberOfExercises = 5;
 
-  // Choisit des groupes musculaires de manière aléatoire
   const groupsToUse = Object.keys(muscleGroups).sort(() => 0.5 - Math.random()).slice(0, 3);
 
   groupsToUse.forEach(group => {
@@ -524,7 +509,6 @@ const generateAutoWorkout = (profile) => {
     }
   });
 
-  // Si on a moins d'exercices que le nombre souhaité, on en ajoute d'autres
   while (selectedExercises.length < numberOfExercises) {
     const randomGroup = Object.keys(muscleGroups)[Math.floor(Math.random() * Object.keys(muscleGroups).length)];
     const availableExercises = muscleGroups[randomGroup];
@@ -583,7 +567,6 @@ const formatTime = (seconds) => {
 };
 
 const calorieBurn = (profile, workout) => {
-  // Estimation très simpliste. En réalité, ce serait un calcul complexe.
   const baseBurn = 5 * workout.exercises.length;
   const modifiers = {
     "débutant": 1, "intermédiaire": 1.2, "avancé": 1.5,
@@ -591,7 +574,6 @@ const calorieBurn = (profile, workout) => {
   return Math.round(baseBurn * (modifiers[profile.level] || 1));
 };
 
-// Pages
 const Dashboard = () => {
   const { state, db, userId, appId } = useContext(AppContext);
   const { workoutCount, totalDuration, totalExercises, muscleChartData } = calculateMetrics(state.profile, state.history);
@@ -685,7 +667,7 @@ const Dashboard = () => {
                   {state.history[0].exercises.map((ex, index) => (
                     <div key={index} className="flex items-center justify-between text-sm text-zinc-300">
                       <span>{ex.name}</span>
-                      <span>{ex.sets.length} séries</span>
+                      <span>{ex.setsCompleted} séries</span>
                     </div>
                   ))}
                 </div>
@@ -704,10 +686,9 @@ const Workouts = () => {
   const { state, setState, db, userId, appId } = useContext(AppContext);
   const [isNewWorkoutDialogOpen, setIsNewWorkoutDialogOpen] = useState(false);
   const [newWorkout, setNewWorkout] = useState({ name: "", exercises: [] });
-  const [selectedExercise, setSelectedExercise] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEquipment, setFilterEquipment] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
 
   const handleAddWorkout = async () => {
     if (newWorkout.name.trim() === "" || newWorkout.exercises.length === 0) {
@@ -1282,7 +1263,6 @@ const Settings = () => {
   );
 };
 
-// Layout
 const RootLayout = () => (
   <div className="flex min-h-screen bg-zinc-950 text-white">
     <Sidebar />
