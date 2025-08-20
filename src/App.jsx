@@ -3,9 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Loader2, XCircle } from 'lucide-react';
+// Note: Les imports de 'react-toastify' ont été retirés pour corriger l'erreur de compilation et de connexion.
 
 /**
  * Composant principal de l'application.
@@ -19,6 +18,7 @@ function App() {
   const [workoutData, setWorkoutData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(true);
+  const [error, setError] = useState(null);
 
   /**
    * Appelle l'API Gemini pour générer un programme d'entraînement basé sur les informations de l'utilisateur.
@@ -26,6 +26,7 @@ function App() {
   const generateWorkoutPlan = async () => {
     setLoading(true);
     setIsFormVisible(false);
+    setError(null);
     
     // Configuration de l'API et du modèle
     const apiKey = "";
@@ -96,11 +97,11 @@ function App() {
         const parsedJson = JSON.parse(rawJson);
         setWorkoutData(parsedJson);
       } else {
-        toast.error("Erreur de génération. Veuillez réessayer.");
+        setError("Erreur de génération. Veuillez réessayer.");
       }
-    } catch (error) {
-      console.error("Erreur lors de l'appel à l'API Gemini:", error);
-      toast.error("Échec de la connexion à l'API. Veuillez réessayer plus tard.");
+    } catch (err) {
+      console.error("Erreur lors de l'appel à l'API Gemini:", err);
+      setError("Échec de la connexion à l'API. Veuillez réessayer plus tard.");
     } finally {
       setLoading(false);
     }
@@ -112,7 +113,7 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!age || !height || !weight) {
-      toast.error("Veuillez remplir tous les champs.");
+      setError("Veuillez remplir tous les champs.");
       return;
     }
     generateWorkoutPlan();
@@ -164,7 +165,17 @@ function App() {
         </div>
       )}
 
-      {workoutData && !loading && (
+      {error && (
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <XCircle className="h-12 w-12 text-red-500" />
+          <p className="text-xl text-red-500">{error}</p>
+          <Button onClick={() => { setIsFormVisible(true); setError(null); }} className="bg-amber-600 text-zinc-950 hover:bg-amber-700 font-bold py-2 px-4 rounded-lg shadow-lg">
+            Réessayer
+          </Button>
+        </div>
+      )}
+
+      {workoutData && !loading && !error && (
         <div className="space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-amber-500">Votre programme personnalisé</h1>
@@ -201,8 +212,6 @@ function App() {
           </div>
         </div>
       )}
-
-      <ToastContainer position="bottom-right" />
     </div>
   );
 }
