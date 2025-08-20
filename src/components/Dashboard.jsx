@@ -1,3 +1,9 @@
+import React, { useContext } from 'react';
+import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AppContext } from '../context/AppContext';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Trophy } from 'lucide-react';
+
 function Dashboard() {
   const { state } = useContext(AppContext);
 
@@ -49,3 +55,5 @@ function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;
