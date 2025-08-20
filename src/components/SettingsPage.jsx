@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
-import { useApp } from '../App';
+import { AppContext } from '../App';
 import { levels, goals, equipmentOptions } from '../data';
 
 function SettingsPage() {
-  const { state, setState } = useApp();
+  const { state, setState } = useContext(AppContext);
 
   const handleProfileChange = (key, value) => {
     setState(s => ({
