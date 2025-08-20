@@ -1,14 +1,16 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { format } from "date-fns";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// Assurez-vous que les variables exerciseMET, weight et duration sont définies
-// d'où cette fonction est appelée.
 export function caloriesForExercise(duration, weight, exerciseMET) {
-  // Cette formule est une estimation basée sur les MET (Metabolic Equivalent of Task).
   const calories = 0.0175 * exerciseMET * weight * duration;
   return calories;
+}
+
+export function formatDate(date) {
+  return format(new Date(date), "PPP");
 }
