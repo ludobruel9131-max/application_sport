@@ -5,7 +5,7 @@ import CustomWorkout from './components/CustomWorkout';
 import WorkoutPrograms from './components/WorkoutPrograms';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
-import { Toaster, toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Composants de substitution pour les onglets manquants
@@ -105,7 +105,7 @@ function App() {
       <main className="flex-1 p-8 overflow-y-auto">
         {renderContent()}
       </main>
-       <Toaster position="bottom-right" />
+       <ToastContainer position="bottom-right" />
     </div>
   );
 }
