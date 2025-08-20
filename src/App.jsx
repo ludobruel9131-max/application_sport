@@ -35,6 +35,9 @@ export default function App() {
         // Mettre à jour l'état avec les services initialisés et l'ID de l'application.
         setAppId(providedAppId);
         setDb(firestoreDb);
+        // Important: Stocker l'instance d'authentification dans l'état pour qu'elle soit disponible pour d'autres hooks.
+        // C'est la ligne qui manquait et qui causait le bug.
+        // setAuth(firebaseAuth);
 
         // Écouter les changements d'état d'authentification. C'est la méthode recommandée.
         const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
@@ -61,7 +64,7 @@ export default function App() {
     }
 
     initFirebase();
-  }, [auth]); // Le tableau de dépendances vide signifie que cet effet ne s'exécute qu'une seule fois au montage.
+  }, []); // Le tableau de dépendances vide signifie que cet effet ne s'exécute qu'une seule fois au montage.
 
   // Utiliser un autre useEffect pour récupérer et s'abonner aux changements de données une fois l'utilisateur authentifié.
   useEffect(() => {
@@ -117,22 +120,22 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-xl font-semibold text-slate-700">Chargement...</div>
+      <div className="flex items-center justify-center min-h-screen bg-neutral-900">
+        <div className="text-xl font-semibold text-neutral-400">Chargement...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center">
-      <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-4xl font-extrabold text-center text-slate-800 mb-8">Ma liste d'activités sportives</h1>
+    <div className="min-h-screen bg-neutral-900 p-8 flex flex-col items-center font-sans">
+      <div className="max-w-xl w-full bg-neutral-800 rounded-2xl shadow-xl p-8">
+        <h1 className="text-4xl font-extrabold text-white text-center mb-8">Ma liste d'activités sportives</h1>
         
         {/* Section d'entrée et de bouton d'ajout */}
         <div className="flex space-x-4 mb-8">
           <input
             type="text"
-            className="flex-grow p-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 transition-all duration-300 shadow-sm"
+            className="flex-grow p-4 border border-neutral-700 bg-neutral-900 text-neutral-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500 transition-all duration-300 shadow-sm placeholder-neutral-500"
             placeholder="Ajouter un nouveau sport..."
             value={newSportName}
             onChange={(e) => setNewSportName(e.target.value)}
@@ -144,7 +147,7 @@ export default function App() {
           />
           <button
             onClick={handleAddSport}
-            className="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-300"
+            className="px-6 py-4 bg-amber-500 text-neutral-900 font-semibold rounded-xl shadow-lg hover:bg-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-200 focus:ring-opacity-50 transition-all duration-300"
           >
             Ajouter
           </button>
@@ -156,20 +159,20 @@ export default function App() {
             {sports.map((sport) => (
               <li
                 key={sport.id}
-                className="bg-slate-100 p-5 rounded-xl shadow-md flex items-center justify-between transition-transform transform hover:scale-105 duration-300"
+                className="bg-neutral-700 p-5 rounded-xl shadow-md flex items-center justify-between transition-transform transform hover:scale-105 duration-300"
               >
-                <span className="text-slate-800 text-lg font-medium">{sport.name}</span>
+                <span className="text-neutral-200 text-lg font-medium">{sport.name}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-center text-slate-500 p-8 rounded-xl bg-slate-100">Aucun sport ajouté pour l'instant. Commencez par en ajouter un ci-dessus !</p>
+          <p className="text-center text-neutral-400 p-8 rounded-xl bg-neutral-700">Aucun sport ajouté pour l'instant. Commencez par en ajouter un ci-dessus !</p>
         )}
 
       </div>
       {/* Afficher l'ID de l'utilisateur à des fins de débogage et de collaboration */}
-      <div className="mt-6 text-slate-600 text-sm">
-        ID Utilisateur : <span className="font-mono bg-slate-200 rounded px-2 py-1">{user?.uid || 'N/A'}</span>
+      <div className="mt-6 text-neutral-600 text-sm">
+        ID Utilisateur : <span className="font-mono bg-neutral-700 rounded px-2 py-1 text-neutral-400">{user?.uid || 'N/A'}</span>
       </div>
     </div>
   );
