@@ -3,8 +3,13 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-do
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Calendar, List, Dumbbell, User, PlusCircle, Settings, LayoutDashboard, History, HeartHandshake } from "lucide-react";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from 'react-toastify';
+
+// Nous ne pouvons pas importer de CSS dans les fichiers JavaScript dans cet environnement,
+// mais `react-toastify` fonctionne sans son CSS de base. Les toast peuvent être stylisés via
+// les props. Pour l'instant, nous le laissons tel quel pour que l'application compile.
+// Si un utilisateur le souhaite, il peut ajouter un CDN pour le CSS de 'react-toastify'.
+
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -315,7 +320,7 @@ function App() {
       setAuth(firebaseAuth);
 
       const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
-O       if (user) {
+        if (user) {
           setUserId(user.uid);
           setIsAuthReady(true);
         } else {
@@ -348,7 +353,7 @@ O       if (user) {
 
       if (isRestDay) {
         if (currentRestDayCount > 4) {
-          console.warn("Le programme est conçu pour 3 jours d'entraînement. Veuillez en sélectionner un pour le remplacer.");
+          toast.warn("Le programme est conçu pour 3 jours d'entraînement. Veuillez en sélectionner un pour le remplacer.");
           return prevRestDays;
         }
         return prevRestDays.filter(day => day !== dayIndex);
@@ -356,7 +361,7 @@ O       if (user) {
         if (currentRestDayCount < 4) {
             return [...prevRestDays, dayIndex].sort((a, b) => a - b);
         } else {
-            console.warn("Vous ne pouvez pas ajouter plus de jours de repos. Le programme a 3 jours d'entraînement.");
+            toast.warn("Vous ne pouvez pas ajouter plus de jours de repos. Le programme a 3 jours d'entraînement.");
             return prevRestDays;
         }
       }
