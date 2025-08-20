@@ -1,5 +1,3 @@
-// src/components/CustomWorkout.jsx
-
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -10,18 +8,14 @@ import { toast } from 'react-toastify';
 /**
  * Ce composant permet à l'utilisateur de créer un entraînement personnalisé.
  * Il inclut un formulaire modal pour définir le nom de l'entraînement et ajouter des exercices.
- * Les appels aux hooks d'état (useState) ont été déplacés au début du composant
- * pour respecter la règle de base de React.
  */
 const CustomWorkout = () => {
-  // Les hooks d'état doivent TOUJOURS être appelés au début de la fonction de composant.
   const [open, setOpen] = useState(false);
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState([]);
   const [currentExercise, setCurrentExercise] = useState({ name: '', sets: '', reps: '' });
 
   const handleAddExercise = () => {
-    // Vérifier que tous les champs sont remplis
     if (currentExercise.name && currentExercise.sets && currentExercise.reps) {
       setExercises([...exercises, currentExercise]);
       setCurrentExercise({ name: '', sets: '', reps: '' });
@@ -35,7 +29,7 @@ const CustomWorkout = () => {
     if (workoutName && exercises.length > 0) {
       console.log('Entraînement sauvegardé :', { workoutName, exercises });
       toast.success("Entraînement sauvegardé !");
-      setOpen(false); // Ferme la modale après la sauvegarde
+      setOpen(false);
     } else {
       toast.error("Veuillez donner un nom et ajouter au moins un exercice.");
     }
@@ -43,7 +37,6 @@ const CustomWorkout = () => {
 
   const handleOpenChange = (isOpen) => {
     setOpen(isOpen);
-    // Réinitialiser les états si la modale est fermée
     if (!isOpen) {
       setWorkoutName('');
       setExercises([]);
