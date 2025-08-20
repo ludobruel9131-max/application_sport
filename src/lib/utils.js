@@ -1,23 +1,10 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format } from "date-fns";
 
+/**
+ * Une fonction utilitaire qui combine des classes de manière conditionnelle et fusionne les classes Tailwind.
+ * C'est une pratique courante dans les projets qui utilisent des composants UI.
+ */
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
-}
-
-export function caloriesForExercise(duration, weight, exerciseMET) {
-  const calories = 0.0175 * exerciseMET * weight * duration;
-  return calories;
-}
-
-export function formatDate(date) {
-  return format(new Date(date), "PPP");
-}
-
-export function bmi(weight, height) {
-  // BMI = poids (kg) / taille (m)²
-  const heightInMeters = height / 100;
-  const bmiValue = weight / (heightInMeters * heightInMeters);
-  return bmiValue;
 }
