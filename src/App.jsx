@@ -88,32 +88,47 @@ function App() {
       }
     };
     
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+    const MAX_RETRIES = 3;
+    let lastError = null;
+    let success = false;
 
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
+    for (let i = 0; i < MAX_RETRIES; i++) {
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      const result = await response.json();
-      const rawJson = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (rawJson) {
-        const parsedJson = JSON.parse(rawJson);
-        setWorkoutData(parsedJson);
-      } else {
-        setError("Erreur de génération. Veuillez réessayer.");
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const rawJson = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (rawJson) {
+          const parsedJson = JSON.parse(rawJson);
+          setWorkoutData(parsedJson);
+          success = true;
+          break; // Sortir de la boucle en cas de succès
+        } else {
+          lastError = "Erreur de génération. Veuillez réessayer.";
+          break; // Ne pas réessayer si la réponse est mal formatée
+        }
+      } catch (err) {
+        lastError = "Échec de la connexion à l'API. Veuillez réessayer plus tard.";
+        if (i < MAX_RETRIES - 1) {
+          const delay = Math.pow(2, i) * 1000;
+          await new Promise(res => setTimeout(res, delay));
+        }
       }
-    } catch (err) {
-      console.error("Erreur lors de l'appel à l'API Gemini:", err);
-      setError("Échec de la connexion à l'API. Veuillez réessayer plus tard.");
-    } finally {
-      setLoading(false);
     }
+
+    if (!success) {
+      setError(lastError);
+    }
+    setLoading(false);
   };
 
   /**
