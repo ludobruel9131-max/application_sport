@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { ChevronRight } from "lucide-react";
 import { useApp } from "../App";
-import { EXERCISES, generateAutoWorkout } from "../data";
+import { generateAutoWorkout } from "../data";
 
 const WorkoutCard = ({ workout }) => (
   <Card className="bg-zinc-900/60 border-zinc-800">
@@ -26,7 +26,7 @@ function Workouts() {
 
   useEffect(() => {
     setAuto(generateAutoWorkout(state.profile));
-  }, [state.profile]); // Ajout de la dépendance state.profile
+  }, [state.profile]);
 
   const handleStartAuto = () => {
     if (auto) {
@@ -48,7 +48,6 @@ function Workouts() {
   return (
     <div className="space-y-4">
       <h2 className="text-3xl font-bold tracking-tight">Programme d'entraînement</h2>
-
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {auto && (
           <Card className="bg-gradient-to-br from-yellow-500/20 to-zinc-900/60 border-yellow-500/40">
