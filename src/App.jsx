@@ -61,7 +61,7 @@ export default function App() {
     }
 
     initFirebase();
-  }, []); // Le tableau de dépendances vide signifie que cet effet ne s'exécute qu'une seule fois au montage.
+  }, [auth]); // Le tableau de dépendances vide signifie que cet effet ne s'exécute qu'une seule fois au montage.
 
   // Utiliser un autre useEffect pour récupérer et s'abonner aux changements de données une fois l'utilisateur authentifié.
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center">
       <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-4xl font-extrabold text-center text-slate-800 mb-8">Liste de Sports</h1>
+        <h1 className="text-4xl font-extrabold text-center text-slate-800 mb-8">Ma liste d'activités sportives</h1>
         
         {/* Section d'entrée et de bouton d'ajout */}
         <div className="flex space-x-4 mb-8">
