@@ -7,8 +7,21 @@ import { Trophy } from 'lucide-react';
 function Dashboard() {
   const { state } = useContext(AppContext);
 
-  // Sécurité : si goals n’existe pas encore, on met 0 par défaut
-  const goals = state?.profile?.goals || {
+  // Correction : Vérifier si `state` et `state.profile` sont définis avant d'y accéder.
+  // Cela évite l'erreur "Cannot read properties of undefined".
+  if (!state || !state.profile) {
+    // Vous pouvez retourner un indicateur de chargement ou un message d'erreur ici.
+    return (
+      <div className="space-y-4">
+        <h2 className="text-3xl font-bold tracking-tight">Tableau de bord</h2>
+        <div className="text-center text-lg text-gray-500">
+          Chargement des données...
+        </div>
+      </div>
+    );
+  }
+
+  const goals = state.profile.goals || {
     caloriesGoal: 0,
     proteinGoal: 0,
     fatGoal: 0,
