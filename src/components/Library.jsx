@@ -5,6 +5,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from ".
 import { Star, Search, BookOpenText } from "lucide-react";
 import { useApp } from "../App";
 import { EXERCISES, equipmentOptions } from "../data";
+import { cn } from "../lib/utils";
 
 const Info = ({ label, value }) => (
     <div className="bg-zinc-800/60 rounded-lg p-2"><span className="text-zinc-400">{label}</span><div className="font-medium">{value}</div></div>
@@ -59,4 +60,18 @@ function Library() {
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base flex items-center justify-between">
                                 <span>{ex.name}</span>
-                             <button onClick={() => toggleFav(ex.id)} className={cn("p-1 rounded-full", state.favorites.includes(ex.id) ? "text-yellow-400" : "text-zinc-400 hover:text-zinc-200")} title="Ajouter aux favoris"/>
+                                <button
+                                    onClick={() => toggleFav(ex.id)}
+                                    className={cn("p-1 rounded-full", state.favorites.includes(ex.id) ? "text-yellow-400" : "text-zinc-400 hover:text-zinc-200")}
+                                    title="Ajouter aux favoris"
+                                />
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default Library;
