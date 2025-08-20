@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Composants de substitution pour les onglets manquants
 const Placeholder = ({ title }) => (
-  <div className="flex items-center justify-center h-full">
+  <div className="flex items-center justify-center h-full text-amber-100">
     <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
   </div>
 );
@@ -42,41 +42,41 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-zinc-50">
+    <div className="flex h-screen bg-zinc-950">
       {/* Barre de navigation latérale */}
-      <aside className="w-64 bg-white p-4 shadow-lg flex flex-col items-center">
-        <h1 className="text-2xl font-bold mb-8">FitApp</h1>
+      <aside className="w-64 bg-zinc-900 p-4 shadow-lg flex flex-col items-center">
+        <h1 className="text-2xl font-bold mb-8 text-amber-100">FitApp</h1>
         <nav className="flex flex-col space-y-2 w-full">
           <Button
             variant={activeTab === 'accueil' ? 'secondary' : 'ghost'}
             onClick={() => setActiveTab('accueil')}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-amber-100"
           >
-            <Heart className="h-4 w-4" />
+            <Heart className="h-4 w-4 text-amber-100" />
             Accueil
           </Button>
           <Button
             variant={activeTab === 'programmes' ? 'secondary' : 'ghost'}
             onClick={() => setActiveTab('programmes')}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-amber-100"
           >
-            <Trophy className="h-4 w-4" />
+            <Trophy className="h-4 w-4 text-amber-100" />
             Programmes
           </Button>
           <Button
             variant={activeTab === 'bibliotheque' ? 'secondary' : 'ghost'}
             onClick={() => setActiveTab('bibliotheque')}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-amber-100"
           >
-            <BookOpen className="h-4 w-4" />
+            <BookOpen className="h-4 w-4 text-amber-100" />
             Bibliothèque
           </Button>
           <Button
             variant={activeTab === 'statistiques' ? 'secondary' : 'ghost'}
             onClick={() => setActiveTab('statistiques')}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-amber-100"
           >
-            <BarChart className="h-4 w-4" />
+            <BarChart className="h-4 w-4 text-amber-100" />
             Statistiques
           </Button>
         </nav>
@@ -85,24 +85,24 @@ function App() {
           <Button
             variant={activeTab === 'reglages' ? 'secondary' : 'ghost'}
             onClick={() => setActiveTab('reglages')}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-amber-100"
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="h-4 w-4 text-amber-100" />
             Réglages
           </Button>
           <Button
             variant={activeTab === 'profil' ? 'secondary' : 'ghost'}
             onClick={() => setActiveTab('profil')}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-amber-100"
           >
-            <User className="h-4 w-4" />
+            <User className="h-4 w-4 text-amber-100" />
             Profil
           </Button>
         </div>
       </aside>
 
       {/* Contenu principal */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto bg-zinc-950 text-amber-100">
         {renderContent()}
       </main>
        <ToastContainer position="bottom-right" />
