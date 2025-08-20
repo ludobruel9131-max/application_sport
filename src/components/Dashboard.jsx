@@ -1,15 +1,17 @@
-import React, { useContext } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Trophy } from "lucide-react";
-import { AppContext } from "../App";
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-
 function Dashboard() {
   const { state } = useContext(AppContext);
+
+  // Sécurité : si goals n’existe pas encore, on met 0 par défaut
+  const goals = state?.profile?.goals || {
+    caloriesGoal: 0,
+    proteinGoal: 0,
+    fatGoal: 0,
+  };
+
   const data = [
-    { name: 'Group A', value: state.profile.goals.caloriesGoal },
-    { name: 'Group B', value: state.profile.goals.proteinGoal },
-    { name: 'Group C', value: state.profile.goals.fatGoal },
+    { name: 'Calories', value: goals.caloriesGoal },
+    { name: 'Protéines', value: goals.proteinGoal },
+    { name: 'Lipides', value: goals.fatGoal },
   ];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
@@ -24,7 +26,7 @@ function Dashboard() {
             <Trophy className="h-4 w-4 text-zinc-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{state.profile.goals.caloriesGoal} kcal</div>
+            <div className="text-2xl font-bold">{goals.caloriesGoal} kcal</div>
           </CardContent>
         </Card>
         <Card>
@@ -47,5 +49,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;
