@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
+import { getFirestore, onSnapshot, collection, addDoc } from 'firebase/firestore';
 
 // Déclaration de variables globales pour satisfaire le linter
 // Le Canvas fournira les valeurs réelles au moment de l'exécution
@@ -13,7 +13,6 @@ const __initial_auth_token = '';
 export default function App() {
   const [appId, setAppId] = useState(null);
   const [db, setDb] = useState(null);
-  const [auth, setAuth] = useState(null);
   const [user, setUser] = useState(null);
   const [sports, setSports] = useState([]);
   const [newSportName, setNewSportName] = useState('');
@@ -36,7 +35,6 @@ export default function App() {
         // Mettre à jour l'état avec les services initialisés et l'ID de l'application.
         setAppId(providedAppId);
         setDb(firestoreDb);
-        setAuth(firebaseAuth);
 
         // Écouter les changements d'état d'authentification. C'est la méthode recommandée.
         const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
@@ -119,22 +117,22 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-xl font-semibold text-gray-700">Chargement...</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-xl font-semibold text-slate-700">Chargement...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
-      <div className="max-w-xl w-full bg-white rounded-xl shadow-lg p-6">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Liste de Sports</h1>
+    <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center">
+      <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-4xl font-extrabold text-center text-slate-800 mb-8">Liste de Sports</h1>
         
         {/* Section d'entrée et de bouton d'ajout */}
         <div className="flex space-x-4 mb-8">
           <input
             type="text"
-            className="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            className="flex-grow p-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 transition-all duration-300 shadow-sm"
             placeholder="Ajouter un nouveau sport..."
             value={newSportName}
             onChange={(e) => setNewSportName(e.target.value)}
@@ -146,7 +144,7 @@ export default function App() {
           />
           <button
             onClick={handleAddSport}
-            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+            className="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-300"
           >
             Ajouter
           </button>
@@ -158,20 +156,20 @@ export default function App() {
             {sports.map((sport) => (
               <li
                 key={sport.id}
-                className="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center justify-between"
+                className="bg-slate-100 p-5 rounded-xl shadow-md flex items-center justify-between transition-transform transform hover:scale-105 duration-300"
               >
-                <span className="text-gray-700 text-lg font-medium">{sport.name}</span>
+                <span className="text-slate-800 text-lg font-medium">{sport.name}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-center text-gray-500">Aucun sport ajouté pour l'instant. Commencez par en ajouter un ci-dessus !</p>
+          <p className="text-center text-slate-500 p-8 rounded-xl bg-slate-100">Aucun sport ajouté pour l'instant. Commencez par en ajouter un ci-dessus !</p>
         )}
 
       </div>
       {/* Afficher l'ID de l'utilisateur à des fins de débogage et de collaboration */}
-      <div className="mt-6 text-gray-600 text-sm">
-        ID Utilisateur : <span className="font-mono bg-gray-200 rounded px-2 py-1">{user?.uid || 'N/A'}</span>
+      <div className="mt-6 text-slate-600 text-sm">
+        ID Utilisateur : <span className="font-mono bg-slate-200 rounded px-2 py-1">{user?.uid || 'N/A'}</span>
       </div>
     </div>
   );
