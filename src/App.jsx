@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Label } from './components/ui/label';
 import { Calendar, List } from 'lucide-react';
 
 /**
  * Programme d'entraînement fixe pour l'exemple.
- * Ce programme est utilisé lorsque l'API n'est pas disponible.
+ * Ce programme a 3 jours d'entraînement par semaine.
  */
 const fixedWorkoutData = [
   {
@@ -20,7 +18,6 @@ const fixedWorkoutData = [
           { "name": "Squats", "sets": 3, "reps": "8-12" },
           { "name": "Développé couché", "sets": 3, "reps": "8-12" },
           { "name": "Tractions (assistées si nécessaire)", "sets": 3, "reps": "6-10" },
-          { "name": "Rowing barre", "sets": 3, "reps": "8-12" },
           { "name": "Planche", "sets": 3, "reps": "45s" }
         ]
       },
@@ -36,7 +33,16 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      { "day": "Vendredi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Rowing barre", "sets": 3, "reps": "8-12" },
+          { "name": "Fentes (inversées)", "sets": 3, "reps": "8-12 (par jambe)" },
+          { "name": "Dips (assistés si nécessaire)", "sets": 3, "reps": "6-10" },
+          { "name": "Curl biceps", "sets": 3, "reps": "10-15" },
+          { "name": "Extensions triceps", "sets": 3, "reps": "10-15" }
+        ]
+      },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -51,7 +57,6 @@ const fixedWorkoutData = [
           { "name": "Squats", "sets": 4, "reps": "8-10" },
           { "name": "Développé couché", "sets": 4, "reps": "8-10" },
           { "name": "Tractions (assistées)", "sets": 4, "reps": "8-10" },
-          { "name": "Rowing barre", "sets": 4, "reps": "8-10" },
           { "name": "Planche", "sets": 4, "reps": "45s" }
         ]
       },
@@ -67,7 +72,16 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      { "day": "Vendredi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Rowing barre", "sets": 4, "reps": "8-10" },
+          { "name": "Fentes (inversées)", "sets": 4, "reps": "8-10 (par jambe)" },
+          { "name": "Dips (assistés)", "sets": 4, "reps": "8-10" },
+          { "name": "Curl biceps", "sets": 4, "reps": "10-12" },
+          { "name": "Extensions triceps", "sets": 4, "reps": "10-12" }
+        ]
+      },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -82,7 +96,6 @@ const fixedWorkoutData = [
           { "name": "Squats", "sets": 4, "reps": "6-8" },
           { "name": "Développé couché", "sets": 4, "reps": "6-8" },
           { "name": "Tractions (assistées)", "sets": 4, "reps": "6-8" },
-          { "name": "Rowing barre", "sets": 4, "reps": "6-8" },
           { "name": "Planche", "sets": 4, "reps": "60s" }
         ]
       },
@@ -98,7 +111,16 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      { "day": "Vendredi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Rowing barre", "sets": 4, "reps": "6-8" },
+          { "name": "Fentes (inversées)", "sets": 4, "reps": "6-8 (par jambe)" },
+          { "name": "Dips (assistés)", "sets": 4, "reps": "6-8" },
+          { "name": "Curl biceps", "sets": 4, "reps": "8-10" },
+          { "name": "Extensions triceps", "sets": 4, "reps": "8-10" }
+        ]
+      },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -113,7 +135,6 @@ const fixedWorkoutData = [
           { "name": "Squats", "sets": 2, "reps": "8-12" },
           { "name": "Développé couché", "sets": 2, "reps": "8-12" },
           { "name": "Tractions (assistées)", "sets": 2, "reps": "8-12" },
-          { "name": "Rowing barre", "sets": 2, "reps": "8-12" },
           { "name": "Planche", "sets": 2, "reps": "45s" }
         ]
       },
@@ -129,7 +150,16 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      { "day": "Vendredi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Rowing barre", "sets": 2, "reps": "8-12" },
+          { "name": "Fentes (inversées)", "sets": 2, "reps": "8-12 (par jambe)" },
+          { "name": "Dips (assistés)", "sets": 2, "reps": "8-12" },
+          { "name": "Curl biceps", "sets": 2, "reps": "10-15" },
+          { "name": "Extensions triceps", "sets": 2, "reps": "10-15" }
+        ]
+      },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -147,15 +177,8 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
 
   const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
   const trainingDaysCount = 3;
-  
-  // Compte le nombre de jours d'entraînement sélectionnés
-  const selectedTrainingDaysCount = 7 - restDays.length;
-  if (selectedTrainingDaysCount !== trainingDaysCount) {
-    console.warn(`Le programme est conçu pour ${trainingDaysCount} jours d'entraînement. Vous avez sélectionné ${selectedTrainingDaysCount} jours.`);
-  }
-
   const newWorkoutData = JSON.parse(JSON.stringify(dataToUse));
-
+  
   newWorkoutData.forEach(week => {
     const workoutsToAssign = week.workouts.filter(w => w.exercises.length > 0);
     const newWorkouts = [];
@@ -181,99 +204,59 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
 
 /**
  * Composant principal de l'application.
- * Gère l'état de l'application, le formulaire de saisie et l'affichage du programme d'entraînement.
+ * Gère l'état de l'application et l'affichage du programme d'entraînement.
  */
 function App() {
-  const [age, setAge] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [goal, setGoal] = useState('recomposition musculaire (perte de graisse et gain musculaire esthétique)');
   const [workoutData, setWorkoutData] = useState(null);
-  const [isFormVisible, setIsFormVisible] = useState(true);
   const [view, setView] = useState('list'); // 'list' ou 'calendar'
   const [restDays, setRestDays] = useState([0, 6]); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
+
+  // Initialise le programme au chargement de la page
+  useEffect(() => {
+    const initialWorkoutLayout = getNewWorkoutLayout(fixedWorkoutData, restDays);
+    setWorkoutData(initialWorkoutLayout);
+  }, []);
 
   // Met à jour le programme lorsque les jours de repos changent.
   useEffect(() => {
     if (workoutData) {
-      // Re-génère le layout du programme pour refléter les nouveaux jours de repos.
       setWorkoutData(getNewWorkoutLayout(fixedWorkoutData, restDays));
     }
   }, [restDays]);
 
   /**
-   * Gère la soumission du formulaire et affiche le programme d'entraînement fixe.
-   */
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Charge directement le programme d'entraînement fixe.
-    const initialWorkoutLayout = getNewWorkoutLayout(fixedWorkoutData, restDays);
-    setWorkoutData(initialWorkoutLayout);
-    setIsFormVisible(false);
-  };
-
-  /**
    * Gère le basculement d'un jour de repos.
+   * La logique a été corrigée pour maintenir 3 jours d'entraînement.
    * @param {number} dayIndex - L'index du jour de la semaine (0-6).
    */
   const handleToggleRestDay = (dayIndex) => {
     setRestDays(prevRestDays => {
-      const selectedTrainingDaysCount = 7 - prevRestDays.length;
-      if (prevRestDays.includes(dayIndex)) {
-        return prevRestDays.filter(day => day !== dayIndex);
-      } else {
+      const isRestDay = prevRestDays.includes(dayIndex);
+      const currentRestDayCount = prevRestDays.length;
+
+      if (isRestDay) {
         // Le programme fixe a 3 jours d'entraînement, on ne peut pas avoir plus de 4 jours de repos.
-        if (selectedTrainingDaysCount <= 3) {
-          console.warn("Vous ne pouvez pas sélectionner plus de 4 jours de repos avec ce programme.");
+        if (currentRestDayCount > 4) {
+          console.warn("Le programme est conçu pour 3 jours d'entraînement. Veuillez en sélectionner un pour le remplacer.");
           return prevRestDays;
         }
-        return [...prevRestDays, dayIndex].sort((a, b) => a - b);
+        return prevRestDays.filter(day => day !== dayIndex);
+      } else {
+        // Ajoute un jour de repos, si on a pas déjà 4 jours de repos.
+        if (currentRestDayCount < 4) {
+            return [...prevRestDays, dayIndex].sort((a, b) => a - b);
+        } else {
+             console.warn("Vous ne pouvez pas ajouter plus de jours de repos. Le programme a 3 jours d'entraînement.");
+             return prevRestDays;
+        }
       }
     });
   };
-
   const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
   return (
     <div className="flex flex-col h-screen bg-zinc-950 text-amber-100 p-8">
-      {isFormVisible && (
-        <div className="max-w-xl mx-auto w-full">
-          <Card className="bg-zinc-900 border-zinc-800 text-amber-100 shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">Créez votre programme sur mesure</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Votre âge (ans)</Label>
-                    <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} required className="bg-zinc-800 border-zinc-700 text-amber-100" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Taille (cm)</Label>
-                    <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} required className="bg-zinc-800 border-zinc-700 text-amber-100" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Poids (kg)</Label>
-                    <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} required className="bg-zinc-800 border-zinc-700 text-amber-100" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="goal">Votre objectif</Label>
-                  <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} className="bg-zinc-800 border-zinc-700 text-amber-100" />
-                </div>
-                <div className="flex justify-center">
-                  <Button type="submit" className="w-full md:w-auto bg-amber-600 text-zinc-950 hover:bg-amber-700 font-bold py-2 px-4 rounded-lg shadow-lg">
-                    Générer mon programme
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {workoutData && !isFormVisible && (
+      {workoutData && (
         <div className="space-y-8">
           <div className="flex justify-center mb-6">
             <Button onClick={() => setView('list')} className={`mr-2 ${view === 'list' ? 'bg-amber-600' : 'bg-zinc-700'} text-zinc-950 hover:bg-amber-700 font-bold`}>
@@ -357,12 +340,6 @@ function App() {
               ))}
             </div>
           )}
-
-          <div className="text-center mt-8">
-            <Button onClick={() => setIsFormVisible(true)} className="bg-amber-600 text-zinc-950 hover:bg-amber-700 font-bold py-2 px-4 rounded-lg shadow-lg">
-              Générer un nouveau programme
-            </Button>
-          </div>
         </div>
       )}
     </div>
