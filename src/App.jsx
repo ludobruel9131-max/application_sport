@@ -377,20 +377,30 @@ const AppProvider = ({ children }) => {
   const [db, setDb] = useState(null);
   const [auth, setAuth] = useState(null);
   const [userId, setUserId] = useState(null);
-  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  
+  // Utilisation de la variable d'environnement Netlify en fallback
+  const appId = typeof __app_id !== 'undefined' ? __app_id : process.env.VITE_APP_ID || 'default-app-id';
 
   useEffect(() => {
     const initialize = async () => {
-      if (typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
+      // Utilisation des variables d'environnement pour une meilleure compatibilité avec les différents environnements de build (Netlify)
+      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : JSON.parse(process.env.VITE_FIREBASE_CONFIG || '{}');
+      const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : process.env.VITE_INITIAL_AUTH_TOKEN || null;
+
+      if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
         try {
-          const firebaseConfig = JSON.parse(__firebase_config);
           const app = initializeApp(firebaseConfig);
           const auth = getAuth(app);
           const db = getFirestore(app);
           setDb(db);
           setAuth(auth);
-          const userAuth = await signInWithCustomToken(auth, __initial_auth_token);
-          setUserId(userAuth.user.uid);
+          if (initialAuthToken) {
+            const userAuth = await signInWithCustomToken(auth, initialAuthToken);
+            setUserId(userAuth.user.uid);
+          } else {
+            await signInAnonymously(auth);
+            setUserId(auth.currentUser.uid);
+          }
           setState((s) => ({ ...s, isAuthReady: true }));
         } catch (e) {
           console.error("Firebase init failed: ", e);
@@ -832,88 +842,85 @@ const Workouts = () => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="filter" className="text-right">Équipement</Label>
-                <Select value={filterEquipment} onValueChange={setFilterEquipment}>
+                <Select
+                  value={filterEquipment}
+                  onValueChange={setFilterEquipment}
+                >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Filtrer par équipement" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="">Tous</SelectItem>
+                      <SelectItem value="">Tout</SelectItem>
                       {equipmentList.map(eq => (
-                        <SelectItem key={eq} value={eq}>{eq.charAt(0).toUpperCase() + eq.slice(1)}</SelectItem>
+                        <SelectItem key={eq} value={eq}>{eq}</SelectItem>
                       ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="max-h-48 overflow-y-auto rounded-md border border-zinc-700">
-              <ul className="divide-y divide-zinc-700">
-                {filteredExercises.map(ex => (
-                  <li key={ex.id} className="p-3 hover:bg-zinc-800 transition-colors cursor-pointer" onClick={() => setNewWorkout(prev => ({ ...prev, exercises: [...prev.exercises, ex] }))}>
-                    <div className="font-semibold">{ex.name}</div>
-                    <div className="text-xs text-zinc-400">Groupe musculaire: {ex.muscleGroup} | Équipement: {ex.equipment.join(", ")}</div>
-                  </li>
-                ))}
-              </ul>
+              <div className="max-h-48 overflow-y-auto rounded-md border border-zinc-700 p-2">
+                {filteredExercises.length > 0 ? (
+                  filteredExercises.map(ex => (
+                    <div key={ex.id} className="flex items-center justify-between py-1 text-sm text-zinc-300 hover:bg-zinc-800 rounded-md px-2 transition-colors">
+                      <span>{ex.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setNewWorkout(prev => ({
+                          ...prev,
+                          exercises: [...prev.exercises, ex]
+                        }))}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-zinc-400">Aucun exercice trouvé.</p>
+                )}
+              </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleAddWorkout}>Créer le programme</Button>
+              <DialogClose asChild>
+                <Button variant="secondary">Annuler</Button>
+              </DialogClose>
+              <Button onClick={handleAddWorkout}>Créer</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Separator className="bg-zinc-800" />
-
       <div className="space-y-4">
-        <h3 className="text-2xl font-semibold">Programmes personnalisés</h3>
-        {state.customWorkouts.length > 0 ? (
-          <ul className="space-y-4">
-            {state.customWorkouts.map(workout => (
-              <li key={workout.id} className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-lg font-bold">{workout.name}</h4>
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleStartWorkout(workout)}><PlayCircle className="h-5 w-5 text-green-400" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteWorkout(workout.id)}><Trash2 className="h-5 w-5 text-red-400" /></Button>
+        <h3 className="text-xl font-bold">Vos programmes</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {state.customWorkouts.length > 0 ? (
+            state.customWorkouts.map(workout => (
+              <Card key={workout.id} className="bg-zinc-900/60 border-zinc-800 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-lg">{workout.name}</h4>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="destructive" size="icon" onClick={() => handleDeleteWorkout(workout.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" onClick={() => handleStartWorkout(workout)}>
+                      <Play className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <p className="text-sm text-zinc-400 mb-2">{workout.exercises.length} exercices</p>
-                <ul className="space-y-1">
-                  {workout.exercises.map(ex => (
-                    <li key={ex.id} className="text-sm text-zinc-300">
-                      - {ex.name}
+                <ul className="text-sm text-zinc-400 space-y-1">
+                  {workout.exercises.map((ex, index) => (
+                    <li key={index} className="flex items-center">
+                      <ChevronRight className="h-4 w-4 mr-2" /> {ex.name}
                     </li>
                   ))}
                 </ul>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-center text-zinc-400">Aucun programme personnalisé pour le moment. Créez-en un pour commencer !</p>
-        )}
-      </div>
-
-      <Separator className="bg-zinc-800" />
-
-      <div className="space-y-4">
-        <h3 className="text-2xl font-semibold">Programmes générés automatiquement</h3>
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardHeader>
-            <CardTitle>Générer un programme personnalisé</CardTitle>
-            <CardDescription>
-              Créez un programme d'entraînement adapté à votre profil actuel en un clic.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <Button onClick={() => handleStartWorkout(generateAutoWorkout(state.profile))}>
-                <Dumbbell className="mr-2 h-4 w-4" /> Générer & Démarrer
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </Card>
+            ))
+          ) : (
+            <p className="text-zinc-400">Aucun programme personnalisé. Créez-en un nouveau !</p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -922,62 +929,58 @@ const Workouts = () => {
 const Session = () => {
   const { state, setState, db, userId, appId } = useContext(AppContext);
   const navigate = useNavigate();
-  const [session, setSession] = useState(state.activeSession);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [sessionTime, setSessionTime] = useState(0);
 
   useEffect(() => {
-    let timer;
-    if (session && !session.isPaused) {
-      const startTime = Date.now() - session.pausedTime;
-      timer = setInterval(() => {
-        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [session]);
+    if (!state.activeSession || state.activeSession.isPaused) return;
+
+    const interval = setInterval(() => {
+      setSessionTime(Math.floor((Date.now() - state.activeSession.startTime) / 1000) - state.activeSession.pausedTime);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.activeSession]);
 
   const handleNextExercise = () => {
-    setSession(s => ({
-      ...s,
-      currentExerciseIndex: s.currentExerciseIndex + 1,
-    }));
+    setState(s => {
+      const newSession = { ...s.activeSession };
+      newSession.currentExerciseIndex += 1;
+      if (newSession.currentExerciseIndex >= newSession.exercises.length) {
+        // Fin de l'entraînement
+        saveSession();
+        return { ...s, activeSession: null, currentWorkout: null };
+      }
+      return { ...s, activeSession: newSession };
+    });
   };
 
-  const handleCompleteSet = () => {
-    const updatedSession = { ...session };
-    updatedSession.exercises[session.currentExerciseIndex].setsCompleted =
-      (updatedSession.exercises[session.currentExerciseIndex].setsCompleted || 0) + 1;
-    setSession(updatedSession);
-    toast.success("Série terminée !");
+  const handlePause = () => {
+    setState(s => {
+      const newSession = { ...s.activeSession, isPaused: true };
+      return { ...s, activeSession: newSession };
+    });
   };
 
-  const handleTogglePause = () => {
-    if (session.isPaused) {
-      setSession(s => ({ ...s, isPaused: false }));
-    } else {
-      setSession(s => ({ ...s, isPaused: true }));
-    }
+  const handleResume = () => {
+    setState(s => {
+      const newSession = { ...s.activeSession, isPaused: false };
+      return { ...s, activeSession: newSession };
+    });
   };
 
-  const handleFinishSession = async () => {
-    const sessionDuration = elapsedTime;
-    const caloriesBurned = calorieBurn(state.profile, state.currentWorkout);
-    const newHistoryEntry = {
-      date: Date.now(),
+  const saveSession = async () => {
+    const workoutToSave = {
       workout: state.currentWorkout,
-      duration: sessionDuration,
-      caloriesBurned: caloriesBurned,
-      exercises: session.exercises.map(ex => ({
-        name: ex.name,
-        sets: ex.sets,
-        setsCompleted: ex.setsCompleted || 0,
-      })),
+      date: Date.now(),
+      duration: sessionTime,
+      exercises: state.activeSession.exercises,
+      caloriesBurned: calorieBurn(state.profile, state.currentWorkout),
     };
 
     if (db && userId) {
       try {
-        await setDoc(doc(collection(db, `/artifacts/${appId}/users/${userId}/history`)), newHistoryEntry);
-        toast.success("Session enregistrée !");
+        await setDoc(doc(db, `/artifacts/${appId}/users/${userId}/history`, uuidv4()), workoutToSave);
+        toast.success("Session d'entraînement sauvegardée !");
       } catch (e) {
         toast.error("Erreur lors de la sauvegarde de la session.");
         console.error("Error adding document: ", e);
@@ -985,370 +988,362 @@ const Session = () => {
     } else {
       setState(s => ({
         ...s,
-        history: [...s.history, newHistoryEntry]
+        history: [...s.history, workoutToSave],
       }));
-      toast.success("Session enregistrée (localement) !");
+      toast.success("Session d'entraînement sauvegardée (localement) !");
     }
-
-    setState(s => ({ ...s, currentWorkout: null, activeSession: null }));
-    navigate('/');
+    navigate('/dashboard');
   };
 
-  if (!session) {
-    return <div className="text-center text-zinc-400">Aucune session en cours.</div>;
+  if (!state.activeSession) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full space-y-4">
+        <h2 className="text-2xl font-bold">Aucune session active</h2>
+        <Button onClick={() => navigate('/workouts')}>
+          <List className="mr-2 h-4 w-4" /> Voir les programmes
+        </Button>
+      </div>
+    );
   }
 
-  const currentExercise = session.exercises[session.currentExerciseIndex];
-  const isLastExercise = session.currentExerciseIndex === session.exercises.length - 1;
+  const currentExercise = state.activeSession.exercises[state.activeSession.currentExerciseIndex];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">{state.currentWorkout.name}</h2>
-      </div>
-
-      <Card className="bg-zinc-900/60 border-zinc-800">
-        <CardHeader>
-          <CardTitle>Session en cours</CardTitle>
-          <CardDescription>Temps écoulé : {formatTime(elapsedTime)}</CardDescription>
+    <div className="flex flex-col items-center justify-center space-y-8 p-6">
+      <h2 className="text-4xl font-bold">{state.currentWorkout.name}</h2>
+      <div className="text-6xl font-extrabold text-yellow-400">{formatTime(sessionTime)}</div>
+      <Card className="bg-zinc-900/60 border-zinc-800 w-full max-w-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">{currentExercise.name}</CardTitle>
+          <CardDescription>
+            <span className="font-semibold text-white">{currentExercise.setsCompleted} / {currentExercise.sets.length} séries terminées</span>
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {currentExercise ? (
-              <div>
-                <h3 className="text-xl font-bold">{currentExercise.name}</h3>
-                <p className="text-sm text-zinc-400">Série {currentExercise.setsCompleted + 1} sur {currentExercise.sets.length}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {currentExercise.sets.map((set, index) => (
-                    <div key={index} className={`rounded-full px-3 py-1 text-xs font-semibold ${index < currentExercise.setsCompleted ? 'bg-green-500 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
-                      {set.reps} reps @ {set.weight}kg
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center justify-center space-x-4">
-                  <Button onClick={handleCompleteSet} variant="default" className="text-white bg-green-500 hover:bg-green-600">
-                    Série Complète
-                  </Button>
-                  {isLastExercise ? (
-                    <Button onClick={handleFinishSession} variant="secondary" className="bg-yellow-400 text-zinc-950 hover:bg-yellow-500">
-                      Terminer
-                    </Button>
-                  ) : (
-                    <Button onClick={handleNextExercise} variant="secondary" className="bg-yellow-400 text-zinc-950 hover:bg-yellow-500">
-                      Exercice suivant <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-zinc-400">Session terminée. Appuyez sur Terminer pour enregistrer.</p>
-            )}
-            <div className="flex items-center justify-center mt-4">
-              <Button onClick={handleTogglePause} variant="outline" className="mr-2">
-                {session.isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-              </Button>
-              <Button onClick={handleFinishSession} variant="destructive">
-                <X className="h-4 w-4 mr-2" /> Annuler
-              </Button>
-            </div>
-          </div>
+        <CardContent className="space-y-4">
+          <ul className="space-y-2 text-center text-zinc-300">
+            {currentExercise.sets.map((set, index) => (
+              <li key={index}>{set.reps} répétitions à {set.weight} kg</li>
+            ))}
+          </ul>
         </CardContent>
+        <CardFooter className="justify-center gap-4">
+          <Button onClick={() => handleNextExercise()}>
+            <Check className="mr-2 h-4 w-4" /> Marquer comme terminé
+          </Button>
+        </CardFooter>
       </Card>
+      <div className="flex space-x-4">
+        {state.activeSession.isPaused ? (
+          <Button variant="secondary" onClick={handleResume}>
+            <PlayCircle className="mr-2 h-4 w-4" /> Reprendre
+          </Button>
+        ) : (
+          <Button variant="secondary" onClick={handlePause}>
+            <Pause className="mr-2 h-4 w-4" /> Pause
+          </Button>
+        )}
+        <Button variant="destructive" onClick={saveSession}>
+          <X className="mr-2 h-4 w-4" /> Arrêter et sauvegarder
+        </Button>
+      </div>
     </div>
   );
 };
 
 const History = () => {
   const { state } = useContext(AppContext);
-  const navigate = useNavigate();
+  const { history } = state;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Historique d'entraînement</h2>
-      </div>
+      <h2 className="text-3xl font-bold tracking-tight">Historique d'entraînement</h2>
       <div className="space-y-4">
-        {state.history.length > 0 ? (
-          state.history.map(entry => (
-            <Card key={entry.id} className="bg-zinc-900/60 border-zinc-800">
-              <CardHeader className="flex-row justify-between items-center">
-                <CardTitle>{entry.workout.name}</CardTitle>
-                <CardDescription className="text-right">
-                  <p>{new Date(entry.date).toLocaleDateString()}</p>
-                  <p>{Math.floor(entry.duration / 60)} min</p>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-zinc-400">Calories brûlées : {entry.caloriesBurned}</p>
-                <ul className="mt-2 space-y-1">
-                  {entry.exercises.map((ex, index) => (
-                    <li key={index} className="text-sm">
-                      {ex.name}: {ex.setsCompleted} séries
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
+        {history.length > 0 ? (
+          history.map(session => (
+            <Card key={session.id} className="bg-zinc-900/60 border-zinc-800 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-lg">{session.workout.name}</h4>
+                <span className="text-sm text-zinc-400">
+                  {new Date(session.date).toLocaleDateString()} - {Math.floor(session.duration / 60)} min
+                </span>
+              </div>
+              <ul className="text-sm text-zinc-400 space-y-1">
+                {session.exercises.map((ex, index) => (
+                  <li key={index} className="flex items-center">
+                    <ChevronRight className="h-4 w-4 mr-2" /> {ex.name} ({ex.setsCompleted} séries)
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-2 text-right text-xs text-zinc-500">
+                Calories brûlées estimées : {session.caloriesBurned} kcal
+              </div>
             </Card>
           ))
         ) : (
-          <p className="text-center text-zinc-400">Aucun historique d'entraînement pour le moment.</p>
+          <p className="text-zinc-400 text-center">Aucune session enregistrée pour le moment.</p>
         )}
       </div>
     </div>
   );
 };
 
-const SettingsComponent = () => { 
+const Profile = () => {
   const { state, setState, db, userId, appId } = useContext(AppContext);
-  const [profile, setProfile] = useState(state.profile);
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileForm, setProfileForm] = useState(state.profile);
 
-  const handleSave = async () => {
+  const handleUpdateProfile = async () => {
     if (db && userId) {
       try {
-        await setDoc(doc(db, `/artifacts/${appId}/users/${userId}/profile`, 'userProfile'), profile);
+        await setDoc(doc(db, `/artifacts/${appId}/users/${userId}/profile`, 'userProfile'), profileForm);
         toast.success("Profil mis à jour !");
+        setIsEditing(false);
       } catch (e) {
-        toast.error("Erreur lors de la sauvegarde du profil.");
-        console.error("Error saving profile: ", e);
+        toast.error("Échec de la mise à jour du profil.");
+        console.error("Error updating profile: ", e);
       }
     } else {
-      setState(s => ({ ...s, profile }));
+      setState(s => ({ ...s, profile: profileForm }));
       toast.success("Profil mis à jour (localement) !");
+      setIsEditing(false);
     }
   };
 
-  const handleCalculateMacros = () => {
-    const BMR_male = 88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * 30); // 30 ans
-    const BMR_female = 447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * 30); // 30 ans
-    const BMR = profile.gender === 'homme' ? BMR_male : BMR_female;
+  const handleFormChange = (e) => {
+    const { id, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [id]: value }));
+  };
 
-    const activityMultiplier = {
-      "sédentaire": 1.2,
-      "léger": 1.375,
-      "modéré": 1.55,
-      "intense": 1.725,
-      "très-intense": 1.9,
-    };
-    const TDEE = BMR * (activityMultiplier[profile.activityLevel] || 1.55);
-    let targetCalories = TDEE;
-    if (profile.goal === 'perte-de-poids') {
-      targetCalories -= 500;
-    } else if (profile.goal === 'prise-de-masse') {
-      targetCalories += 300;
-    }
+  const handleGoalChange = (value) => {
+    setProfileForm(prev => ({ ...prev, goal: value }));
+  };
 
-    const protein = profile.weight * (profile.goal === 'perte-de-poids' ? 2 : 1.5);
-    const fat = targetCalories * 0.25 / 9;
-    const carbs = (targetCalories - (protein * 4) - (fat * 9)) / 4;
+  const handleLevelChange = (value) => {
+    setProfileForm(prev => ({ ...prev, level: value }));
+  };
 
-    setProfile(p => ({
-      ...p,
-      calories: Math.round(targetCalories),
-      macros: {
-        protein: Math.round(protein),
-        carbs: Math.round(carbs),
-        fat: Math.round(fat)
-      }
-    }));
+  const handleGenderChange = (value) => {
+    setProfileForm(prev => ({ ...prev, gender: value }));
+  };
+
+  const handleActivityChange = (value) => {
+    setProfileForm(prev => ({ ...prev, activityLevel: value }));
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Paramètres du profil</h2>
-        <Button onClick={handleSave}>Enregistrer</Button>
+        <h2 className="text-3xl font-bold tracking-tight">Mon Profil</h2>
+        <Button onClick={() => setIsEditing(!isEditing)} variant={isEditing ? 'destructive' : 'default'}>
+          {isEditing ? 'Annuler' : 'Modifier le profil'}
+        </Button>
       </div>
-      <Separator className="bg-zinc-800" />
-      
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Informations générales</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Nom</Label>
-            <Input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />
+
+      <Card className="bg-zinc-900/60 border-zinc-800 p-6 space-y-4">
+        {isEditing ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom</Label>
+                <Input id="name" value={profileForm.name} onChange={handleFormChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="goal">Objectif</Label>
+                <Select value={profileForm.goal} onValueChange={handleGoalChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {goals.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="level">Niveau</Label>
+                <Select value={profileForm.level} onValueChange={handleLevelChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {levels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gender">Sexe</Label>
+                <Select value={profileForm.gender} onValueChange={handleGenderChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {genders.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="weight">Poids (kg)</Label>
+                <Input id="weight" type="number" value={profileForm.weight} onChange={handleFormChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="height">Taille (cm)</Label>
+                <Input id="height" type="number" value={profileForm.height} onChange={handleFormChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="activityLevel">Niveau d'activité</Label>
+                <Select value={profileForm.activityLevel} onValueChange={handleActivityChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {activityLevels.map(al => <SelectItem key={al.value} value={al.value}>{al.label}</SelectItem>)}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button onClick={handleUpdateProfile} className="w-full">Sauvegarder les modifications</Button>
           </div>
-          <div className="space-y-2">
-            <Label>Genre</Label>
-            <Select value={profile.gender} onValueChange={value => setProfile(p => ({ ...p, gender: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez votre genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {genders.map(g => <SelectItem key={g} value={g}>{g.charAt(0).toUpperCase() + g.slice(1)}</SelectItem>)}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-zinc-300">
+              <div><span className="font-semibold text-white">Nom :</span> {state.profile.name}</div>
+              <div><span className="font-semibold text-white">Niveau :</span> {state.profile.level}</div>
+              <div><span className="font-semibold text-white">Objectif :</span> {state.profile.goal}</div>
+              <div><span className="font-semibold text-white">Sexe :</span> {state.profile.gender}</div>
+              <div><span className="font-semibold text-white">Poids :</span> {state.profile.weight} kg</div>
+              <div><span className="font-semibold text-white">Taille :</span> {state.profile.height} cm</div>
+              <div><span className="font-semibold text-white">Niveau d'activité :</span> {state.profile.activityLevel}</div>
+            </div>
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Poids ({profile.weight} kg)</Label>
-            <Slider
-              value={[profile.weight]}
-              onValueChange={value => setProfile(p => ({ ...p, weight: value[0] }))}
-              min={30}
-              max={200}
-              step={1}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Taille ({profile.height} cm)</Label>
-            <Slider
-              value={[profile.height]}
-              onValueChange={value => setProfile(p => ({ ...p, height: value[0] }))}
-              min={100}
-              max={250}
-              step={1}
-            />
-          </div>
-        </div>
-      </div>
-      <Separator className="bg-zinc-800" />
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Objectifs et activité</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Niveau</Label>
-            <Select value={profile.level} onValueChange={value => setProfile(p => ({ ...p, level: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez votre niveau" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {levels.map(level => <SelectItem key={level} value={level}>{level.charAt(0).toUpperCase() + level.slice(1)}</SelectItem>)}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Objectif</Label>
-            <Select value={profile.goal} onValueChange={value => setProfile(p => ({ ...p, goal: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez votre objectif" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {goals.map(goal => <SelectItem key={goal} value={goal}>{goal.charAt(0).toUpperCase() + goal.slice(1)}</SelectItem>)}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Niveau d'activité</Label>
-          <Select value={profile.activityLevel} onValueChange={value => setProfile(p => ({ ...p, activityLevel: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionnez votre niveau d'activité" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {activityLevels.map(al => <SelectItem key={al.value} value={al.value}>{al.label}</SelectItem>)}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={handleCalculateMacros}>Calculer les calories & macros</Button>
-        </div>
-        <div className="space-y-2">
-          <Label>Calories ({profile.calories} kcal)</Label>
-          <Slider
-            value={[profile.calories]}
-            onValueChange={value => setProfile(p => ({ ...p, calories: value[0] }))}
-            min={1000}
-            max={5000}
-            step={10}
-          />
-        </div>
-      </div>
-      <Separator className="bg-zinc-800" />
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Macro-nutriments</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Protéines ({profile.macros.protein}g)</Label>
-            <Input type="number" value={profile.macros.protein} onChange={e => setProfile(p => ({ ...p, macros: { ...p.macros, protein: parseInt(e.target.value) || 0 } }))} />
-          </div>
-          <div className="space-y-2">
-            <Label>Glucides ({profile.macros.carbs}g)</Label>
-            <Input type="number" value={profile.macros.carbs} onChange={e => setProfile(p => ({ ...p, macros: { ...p.macros, carbs: parseInt(e.target.value) || 0 } }))} />
-          </div>
-          <div className="space-y-2">
-            <Label>Lipides ({profile.macros.fat}g)</Label>
-            <Input type="number" value={profile.macros.fat} onChange={e => setProfile(p => ({ ...p, macros: { ...p.macros, fat: parseInt(e.target.value) || 0 } }))} />
-          </div>
+        )}
+      </Card>
+      <div className="bg-zinc-900/60 border-zinc-800 p-6 rounded-xl space-y-4">
+        <h3 className="text-xl font-bold">Informations Nutritionnelles</h3>
+        <p className="text-zinc-300">Basées sur votre profil :</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-zinc-950 border-zinc-800 p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-400">{state.profile.calories}</div>
+            <p className="text-sm text-zinc-400">Calories</p>
+          </Card>
+          <Card className="bg-zinc-950 border-zinc-800 p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-400">{state.profile.macros.protein}g</div>
+            <p className="text-sm text-zinc-400">Protéines</p>
+          </Card>
+          <Card className="bg-zinc-950 border-zinc-800 p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-400">{state.profile.macros.carbs}g</div>
+            <p className="text-sm text-zinc-400">Glucides</p>
+          </Card>
+          <Card className="bg-zinc-950 border-zinc-800 p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-400">{state.profile.macros.fat}g</div>
+            <p className="text-sm text-zinc-400">Lipides</p>
+          </Card>
         </div>
       </div>
     </div>
   );
 };
 
-const RootLayout = () => (
-  <div className="flex min-h-screen bg-zinc-950 text-white">
-    <Sidebar />
-    <main className="flex-1 p-8 overflow-y-auto">
-      <Outlet />
-    </main>
-    <ToastContainer position="bottom-right" theme="dark" />
-  </div>
-);
-
-const Sidebar = () => {
+const Header = () => {
+  const { state, userId } = useContext(AppContext);
   const location = useLocation();
 
-  const getNavLinkClass = (path) =>
-    `flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors hover:bg-zinc-800 ${
-      location.pathname === path ? 'bg-zinc-800 text-yellow-400' : 'text-zinc-400'
-    }`;
+  const getTitle = () => {
+    switch(location.pathname) {
+      case '/dashboard':
+        return 'Tableau de bord';
+      case '/workouts':
+        return 'Programmes';
+      case '/session':
+        return state.currentWorkout?.name || 'Session';
+      case '/history':
+        return 'Historique';
+      case '/profile':
+        return 'Profil';
+      default:
+        return 'Sport App';
+    }
+  };
 
   return (
-    <aside className="w-64 bg-zinc-900/60 p-4 border-r border-zinc-800 flex flex-col items-center">
-      <div className="mb-8 flex items-center space-x-2">
-        <Dumbbell className="h-8 w-8 text-yellow-400" />
-        <span className="text-xl font-bold">Fitness App</span>
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-zinc-950/80 border-b border-zinc-800">
+      <div className="container h-16 flex items-center justify-between px-4">
+        <div className="flex items-center space-x-4">
+          <Dumbbell className="h-6 w-6 text-yellow-400" />
+          <h1 className="font-bold text-xl">{getTitle()}</h1>
+        </div>
+        <div className="text-sm text-zinc-500">
+          ID utilisateur : {userId ? userId.substring(0, 8) + '...' : 'Non connecté'}
+        </div>
       </div>
-      <nav className="flex-1 w-full space-y-2">
-        <NavLink to="/" className={getNavLinkClass('/')}>
-          <LayoutDashboard className="h-5 w-5" />
-          <span>Tableau de bord</span>
+    </header>
+  );
+};
+
+const Sidebar = () => {
+  return (
+    <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-zinc-800 bg-zinc-950 px-4 py-8 md:flex">
+      <div className="mb-6 flex items-center justify-center">
+        <Dumbbell className="h-10 w-10 text-yellow-400" />
+      </div>
+      <nav className="flex-1 space-y-2">
+        <NavLink to="/dashboard" className={({ isActive }) => `flex items-center px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:bg-zinc-800'}`}>
+          <LayoutDashboard className="h-5 w-5 mr-3" />
+          Tableau de bord
         </NavLink>
-        <NavLink to="/workouts" className={getNavLinkClass('/workouts')}>
-          <List className="h-5 w-5" />
-          <span>Programmes</span>
+        <NavLink to="/workouts" className={({ isActive }) => `flex items-center px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:bg-zinc-800'}`}>
+          <List className="h-5 w-5 mr-3" />
+          Programmes
         </NavLink>
-        <NavLink to="/history" className={getNavLinkClass('/history')}>
-          <Calendar className="h-5 w-5" />
-          <span>Historique</span>
+        <NavLink to="/history" className={({ isActive }) => `flex items-center px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:bg-zinc-800'}`}>
+          <BarChart className="h-5 w-5 mr-3" />
+          Historique
         </NavLink>
-        <NavLink to="/settings" className={getNavLinkClass('/settings')}>
-          <Settings className="h-5 w-5" />
-          <span>Paramètres</span>
+        <NavLink to="/profile" className={({ isActive }) => `flex items-center px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:bg-zinc-800'}`}>
+          <User className="h-5 w-5 mr-3" />
+          Profil
         </NavLink>
       </nav>
-      <div className="text-center text-zinc-400 text-sm mt-4">
-        ID d'utilisateur : <span className="text-zinc-500 break-all">{useContext(AppContext).userId || 'En cours...'}</span>
-      </div>
     </aside>
   );
 };
 
-const App = () => {
+const MainLayout = () => {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white flex flex-col md:pl-64">
+      <Header />
+      <Sidebar />
+      <main className="flex-1 p-8">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+function App() {
   return (
     <AppProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<RootLayout />}>
+          <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="workouts" element={<Workouts />} />
             <Route path="session" element={<Session />} />
             <Route path="history" element={<History />} />
-            <Route path="settings" element={<SettingsComponent />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
         </Routes>
       </BrowserRouter>
+      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="dark" />
     </AppProvider>
   );
-};
+}
 
 export default App;
