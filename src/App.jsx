@@ -1,29 +1,58 @@
 import React, { useState, useEffect, createContext } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Button } from "./components/ui/button";
-import { Calendar, List } from "lucide-react";
+import { Calendar, List, Dumbbell, User, PlusCircle, Settings, LayoutDashboard, History, HeartHandshake } from "lucide-react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Importez tous les composants et les données nécessaires
-import Dashboard from "./components/Dashboard";
-import Workouts from "./components/Workouts";
-import Library from "./components/Library";
-import CustomWorkout from "./components/CustomWorkout";
-import CreateCustomWorkout from "./components/CreateCustomWorkout";
-import MyCustomWorkouts from "./components/MyCustomWorkouts";
-import SettingsPage from "./components/SettingsPage";
-import Shell from "./components/Shell";
-import ActiveSession from "./components/ActiveSession";
-import { fixedWorkoutData, defaultProfile } from "./data";
+// Les données de l'application
+const fixedWorkoutData = [
+  {
+    week: 1,
+    workouts: [
+      {
+        name: "Entraînement 1",
+        exercises: [
+          { name: "Squat", sets: 3, reps: 10, weight: "60kg" },
+          { name: "Développé couché", sets: 3, reps: 8, weight: "40kg" },
+          { name: "Tirage vertical", sets: 3, reps: 12, weight: "30kg" },
+        ],
+      },
+      {
+        name: "Entraînement 2",
+        exercises: [
+          { name: "Soulevé de terre", sets: 3, reps: 5, weight: "80kg" },
+          { name: "Presse à épaules", sets: 3, reps: 10, weight: "20kg" },
+          { name: "Rowing barre", sets: 3, reps: 10, weight: "40kg" },
+        ],
+      },
+      {
+        name: "Entraînement 3",
+        exercises: [
+          { name: "Fentes", sets: 3, reps: 12, weight: "20kg" },
+          { name: "Dips", sets: 3, reps: 8, weight: "Poids de corps" },
+          { name: "Tirage horizontal", sets: 3, reps: 12, weight: "35kg" },
+        ],
+      },
+    ],
+  },
+];
+
+const defaultProfile = {
+  name: "Utilisateur",
+  level: "Débutant",
+  goals: "Force et endurance",
+  lastWorkout: "Aucun",
+  customWorkouts: [],
+};
 
 /**
  * Fonction pure pour générer le nouveau programme d'entraînement en fonction des jours de repos.
- * @param {array} dataToUse - Les données de programme à utiliser (le programme fixe dans ce cas).
+ * @param {array} dataToUse - Les données de programme à utiliser.
  * @param {array} restDays - Les indices des jours de repos.
  * @returns {array} Le programme d'entraînement mis à jour.
  */
@@ -31,7 +60,6 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
   if (!dataToUse) return null;
 
   const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-  const trainingDaysCount = 3;
   const newWorkoutData = JSON.parse(JSON.stringify(dataToUse));
   
   newWorkoutData.forEach(week => {
@@ -59,6 +87,188 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
 
 // Crée le contexte et l'exporte pour qu'il soit utilisé par les composants enfants
 export const AppContext = createContext();
+
+// Définition des composants directement dans ce fichier
+const Shell = () => {
+    const location = useLocation();
+    const isDashboard = location.pathname === '/';
+    const isWorkouts = location.pathname === '/workouts';
+    const isLibrary = location.pathname === '/library';
+    const isSettings = location.pathname === '/settings';
+
+    return (
+        <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+            <header className="p-4 bg-gray-800 shadow-md">
+                <div className="container mx-auto flex justify-between items-center">
+                    <h1 className="text-2xl font-bold text-teal-400">Application Sport</h1>
+                </div>
+            </header>
+            <main className="flex-grow p-4">
+                <div className="container mx-auto">
+                    <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/workouts" element={<Workouts />} />
+                        <Route path="/library" element={<Library />} />
+                        <Route path="/custom/:id" element={<CustomWorkout />} />
+                        <Route path="/create-custom" element={<CreateCustomWorkout />} />
+                        <Route path="/my-custom-workouts" element={<MyCustomWorkouts />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/active-session" element={<ActiveSession />} />
+                    </Routes>
+                </div>
+            </main>
+            <nav className="fixed bottom-0 left-0 right-0 bg-gray-800 shadow-lg border-t border-gray-700">
+                <ul className="flex justify-around items-center p-2">
+                    <li>
+                        <Link to="/" className={`flex flex-col items-center p-2 ${isDashboard ? 'text-teal-400' : 'text-gray-400'}`}>
+                            <LayoutDashboard size={24} />
+                            <span className="text-xs">Tableau de bord</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/workouts" className={`flex flex-col items-center p-2 ${isWorkouts ? 'text-teal-400' : 'text-gray-400'}`}>
+                            <Dumbbell size={24} />
+                            <span className="text-xs">Entraînements</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/library" className={`flex flex-col items-center p-2 ${isLibrary ? 'text-teal-400' : 'text-gray-400'}`}>
+                            <HeartHandshake size={24} />
+                            <span className="text-xs">Partenaires</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/settings" className={`flex flex-col items-center p-2 ${isSettings ? 'text-teal-400' : 'text-gray-400'}`}>
+                            <Settings size={24} />
+                            <span className="text-xs">Réglages</span>
+                        </Link>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    );
+};
+
+const Dashboard = () => {
+  return (
+    <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+      <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+        <CardHeader>
+          <CardTitle>Tableau de bord</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Ceci est votre tableau de bord. Il sera construit dans une prochaine étape.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+const Workouts = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Entraînements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page des entraînements. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const Library = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Partenaires</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page des partenaires. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const CustomWorkout = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Entraînement personnalisé</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page de l'entraînement personnalisé. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const CreateCustomWorkout = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Créer un entraînement personnalisé</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page pour créer un entraînement personnalisé. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const MyCustomWorkouts = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Mes entraînements personnalisés</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page de mes entraînements personnalisés. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const SettingsPage = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Paramètres</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page des paramètres. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const ActiveSession = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-900 text-gray-100 min-h-screen">
+            <Card className="w-full max-w-2xl bg-gray-800 text-gray-100 border-gray-700 rounded-2xl shadow-lg">
+                <CardHeader>
+                    <CardTitle>Session active</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Ceci est la page de session active. Elle sera construite dans une prochaine étape.</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
 
 function App() {
   const [state, setState] = useState(() => {
@@ -105,7 +315,7 @@ function App() {
       setAuth(firebaseAuth);
 
       const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
-        if (user) {
+O       if (user) {
           setUserId(user.uid);
           setIsAuthReady(true);
         } else {
