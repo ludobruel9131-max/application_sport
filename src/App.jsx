@@ -3,11 +3,178 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { Loader2, XCircle, Calendar, List } from 'lucide-react';
+import { Calendar, List } from 'lucide-react';
+
+/**
+ * Programme d'entraînement fixe pour l'exemple.
+ * Ce programme est utilisé lorsque l'API n'est pas disponible.
+ */
+const fixedWorkoutData = [
+  {
+    "week": 1,
+    "description": "Cette semaine est axée sur l'établissement d'une base solide et la familiarisation avec les mouvements. Concentrez-vous sur la forme et la connexion esprit-muscle.",
+    "workouts": [
+      {
+        "day": "Lundi",
+        "exercises": [
+          { "name": "Squats", "sets": 3, "reps": "8-12" },
+          { "name": "Développé couché", "sets": 3, "reps": "8-12" },
+          { "name": "Tractions (assistées si nécessaire)", "sets": 3, "reps": "6-10" },
+          { "name": "Rowing barre", "sets": 3, "reps": "8-12" },
+          { "name": "Planche", "sets": 3, "reps": "45s" }
+        ]
+      },
+      { "day": "Mardi", "exercises": [] },
+      {
+        "day": "Mercredi",
+        "exercises": [
+          { "name": "Soulevé de terre roumain", "sets": 3, "reps": "10-15" },
+          { "name": "Fentes", "sets": 3, "reps": "10-15 (par jambe)" },
+          { "name": "Développé épaules", "sets": 3, "reps": "8-12" },
+          { "name": "Élévations latérales", "sets": 3, "reps": "12-15" },
+          { "name": "Gainage latéral", "sets": 3, "reps": "30s (par côté)" }
+        ]
+      },
+      { "day": "Jeudi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Curls biceps", "sets": 3, "reps": "10-15" },
+          { "name": "Extensions triceps", "sets": 3, "reps": "10-15" },
+          { "name": "Presse à cuisses", "sets": 3, "reps": "12-15" },
+          { "name": "Mollets assis", "sets": 3, "reps": "15-20" },
+          { "name": "Crunchs", "sets": 3, "reps": "20" }
+        ]
+      },
+      { "day": "Samedi", "exercises": [] },
+      { "day": "Dimanche", "exercises": [] }
+    ]
+  },
+  {
+    "week": 2,
+    "description": "Augmentation du volume d'entraînement pour stimuler la croissance musculaire. Visez à augmenter les charges ou le nombre de répétitions par rapport à la semaine précédente.",
+    "workouts": [
+      {
+        "day": "Lundi",
+        "exercises": [
+          { "name": "Squats", "sets": 4, "reps": "8-10" },
+          { "name": "Développé couché", "sets": 4, "reps": "8-10" },
+          { "name": "Tractions (assistées)", "sets": 4, "reps": "8-10" },
+          { "name": "Rowing barre", "sets": 4, "reps": "8-10" },
+          { "name": "Planche", "sets": 4, "reps": "45s" }
+        ]
+      },
+      { "day": "Mardi", "exercises": [] },
+      {
+        "day": "Mercredi",
+        "exercises": [
+          { "name": "Soulevé de terre roumain", "sets": 4, "reps": "10-12" },
+          { "name": "Fentes", "sets": 4, "reps": "10-12 (par jambe)" },
+          { "name": "Développé épaules", "sets": 4, "reps": "8-10" },
+          { "name": "Élévations latérales", "sets": 4, "reps": "10-12" },
+          { "name": "Gainage latéral", "sets": 4, "reps": "30s (par côté)" }
+        ]
+      },
+      { "day": "Jeudi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Curls biceps", "sets": 4, "reps": "10-12" },
+          { "name": "Extensions triceps", "sets": 4, "reps": "10-12" },
+          { "name": "Presse à cuisses", "sets": 4, "reps": "10-12" },
+          { "name": "Mollets assis", "sets": 4, "reps": "12-15" },
+          { "name": "Crunchs", "sets": 4, "reps": "15-20" }
+        ]
+      },
+      { "day": "Samedi", "exercises": [] },
+      { "day": "Dimanche", "exercises": [] }
+    ]
+  },
+  {
+    "week": 3,
+    "description": "Cette semaine est plus intense pour choquer les muscles et favoriser la croissance. Visez à augmenter les charges tout en maintenant une bonne forme.",
+    "workouts": [
+      {
+        "day": "Lundi",
+        "exercises": [
+          { "name": "Squats", "sets": 4, "reps": "6-8" },
+          { "name": "Développé couché", "sets": 4, "reps": "6-8" },
+          { "name": "Tractions (assistées)", "sets": 4, "reps": "6-8" },
+          { "name": "Rowing barre", "sets": 4, "reps": "6-8" },
+          { "name": "Planche", "sets": 4, "reps": "60s" }
+        ]
+      },
+      { "day": "Mardi", "exercises": [] },
+      {
+        "day": "Mercredi",
+        "exercises": [
+          { "name": "Soulevé de terre roumain", "sets": 4, "reps": "8-10" },
+          { "name": "Fentes", "sets": 4, "reps": "8-10 (par jambe)" },
+          { "name": "Développé épaules", "sets": 4, "reps": "6-8" },
+          { "name": "Élévations latérales", "sets": 4, "reps": "8-10" },
+          { "name": "Gainage latéral", "sets": 4, "reps": "45s (par côté)" }
+        ]
+      },
+      { "day": "Jeudi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Curls biceps", "sets": 4, "reps": "8-10" },
+          { "name": "Extensions triceps", "sets": 4, "reps": "8-10" },
+          { "name": "Presse à cuisses", "sets": 4, "reps": "8-10" },
+          { "name": "Mollets assis", "sets": 4, "reps": "10-12" },
+          { "name": "Crunchs", "sets": 4, "reps": "15" }
+        ]
+      },
+      { "day": "Samedi", "exercises": [] },
+      { "day": "Dimanche", "exercises": [] }
+    ]
+  },
+  {
+    "week": 4,
+    "description": "Une semaine de 'deload' ou de récupération active pour permettre à votre corps de se reconstruire et de se préparer au prochain cycle. Baissez les charges et le volume tout en maintenant la forme.",
+    "workouts": [
+      {
+        "day": "Lundi",
+        "exercises": [
+          { "name": "Squats", "sets": 2, "reps": "8-12" },
+          { "name": "Développé couché", "sets": 2, "reps": "8-12" },
+          { "name": "Tractions (assistées)", "sets": 2, "reps": "8-12" },
+          { "name": "Rowing barre", "sets": 2, "reps": "8-12" },
+          { "name": "Planche", "sets": 2, "reps": "45s" }
+        ]
+      },
+      { "day": "Mardi", "exercises": [] },
+      {
+        "day": "Mercredi",
+        "exercises": [
+          { "name": "Soulevé de terre roumain", "sets": 2, "reps": "10-15" },
+          { "name": "Fentes", "sets": 2, "reps": "10-15 (par jambe)" },
+          { "name": "Développé épaules", "sets": 2, "reps": "8-12" },
+          { "name": "Élévations latérales", "sets": 2, "reps": "12-15" },
+          { "name": "Gainage latéral", "sets": 2, "reps": "30s (par côté)" }
+        ]
+      },
+      { "day": "Jeudi", "exercises": [] },
+      {
+        "day": "Vendredi",
+        "exercises": [
+          { "name": "Curls biceps", "sets": 2, "reps": "10-15" },
+          { "name": "Extensions triceps", "sets": 2, "reps": "10-15" },
+          { "name": "Presse à cuisses", "sets": 2, "reps": "12-15" },
+          { "name": "Mollets assis", "sets": 2, "reps": "15-20" },
+          { "name": "Crunchs", "sets": 2, "reps": "20" }
+        ]
+      },
+      { "day": "Samedi", "exercises": [] },
+      { "day": "Dimanche", "exercises": [] }
+    ]
+  }
+];
 
 /**
  * Composant principal de l'application.
- * Gère l'état de l'application, le formulaire de saisie et la génération du programme d'entraînement.
+ * Gère l'état de l'application, le formulaire de saisie et l'affichage du programme d'entraînement.
  */
 function App() {
   const [age, setAge] = useState('');
@@ -15,140 +182,39 @@ function App() {
   const [weight, setWeight] = useState('');
   const [goal, setGoal] = useState('recomposition musculaire (perte de graisse et gain musculaire esthétique)');
   const [workoutData, setWorkoutData] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(true);
-  const [error, setError] = useState(null);
   const [view, setView] = useState('list'); // 'list' ou 'calendar'
   const [restDays, setRestDays] = useState([0, 6]); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
 
   // Mettez à jour le programme lorsque les jours de repos changent
   useEffect(() => {
     if (workoutData) {
-      regenerateWorkoutLayout();
+      regenerateWorkoutLayout(workoutData);
     }
   }, [restDays]);
 
   /**
-   * Appelle l'API Gemini pour générer un programme d'entraînement basé sur les informations de l'utilisateur.
+   * Re-distribue les entraînements en fonction des jours de repos sélectionnés.
+   * @param {array} dataToUse - Les données de programme à utiliser.
    */
-  const generateWorkoutPlan = async () => {
-    setLoading(true);
-    setIsFormVisible(false);
-    setError(null);
-    setWorkoutData(null);
-    
-    // Configuration de l'API et du modèle
-    const apiKey = "";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-    
-    // Prompt pour l'API
-    const userPrompt = `Générer un plan d'entraînement de 4 semaines en JSON pour une personne de ${age} ans, ${height}cm, et ${weight}kg. L'objectif est la ${goal}. Le programme doit être inspiré par la science et les meilleures pratiques de musculation (par ex. hypertrophie, force, volume, etc.). Chaque semaine doit avoir un programme différent pour éviter la stagnation. Le plan doit travailler tous les principaux groupes musculaires. Chaque exercice doit avoir un nom, un nombre de séries, et un nombre de répétitions. Inclure une courte description pour chaque semaine, avec un accent sur la progression. Par exemple, la semaine 1 peut se concentrer sur l'établissement d'une base, et la semaine 2 sur l'augmentation du volume. Le format JSON attendu est un tableau d'objets, où chaque objet représente une semaine.`;
-
-    // Schéma JSON pour la réponse structurée
-    const responseSchema = {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          week: { "type": "NUMBER" },
-          description: { "type": "STRING" },
-          workouts: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                day: { "type": "STRING" },
-                exercises: {
-                  type: "ARRAY",
-                  items: {
-                    type: "OBJECT",
-                    properties: {
-                      name: { "type": "STRING" },
-                      sets: { "type": "NUMBER" },
-                      reps: { "type": "STRING" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "propertyOrdering": ["week", "description", "workouts"]
-      }
-    };
-    
-    const payload = {
-      contents: [{
-        role: "user",
-        parts: [{ text: userPrompt }]
-      }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema
-      }
-    };
-    
-    const MAX_RETRIES = 3;
-    let lastError = null;
-    let success = false;
-
-    for (let i = 0; i < MAX_RETRIES; i++) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const result = await response.json();
-        const rawJson = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (rawJson) {
-          const parsedJson = JSON.parse(rawJson);
-          setWorkoutData(parsedJson);
-          success = true;
-          break; // Sortir de la boucle en cas de succès
-        } else {
-          lastError = "Erreur de génération. Veuillez réessayer.";
-          break; // Ne pas réessayer si la réponse est mal formatée
-        }
-      } catch (err) {
-        lastError = "Échec de la connexion à l'API. Veuillez réessayer plus tard.";
-        if (i < MAX_RETRIES - 1) {
-          const delay = Math.pow(2, i) * 1000;
-          await new Promise(res => setTimeout(res, delay));
-        }
-      }
-    }
-
-    if (!success) {
-      setError(lastError);
-    }
-    setLoading(false);
-  };
-
-  /**
-   * Re-distribue les entraînements en fonction des jours de repos sélectionnés
-   */
-  const regenerateWorkoutLayout = () => {
-    if (!workoutData) return;
+  const regenerateWorkoutLayout = (dataToUse) => {
+    if (!dataToUse) return;
 
     const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-    const workoutsPerWeek = workoutData[0]?.workouts.length;
-    const trainingDaysCount = 7 - restDays.length;
     
-    // Si le nombre d'entraînements générés ne correspond pas au nombre de jours d'entraînement disponibles,
-    // on ne peut pas redistribuer. On laisse le programme tel quel pour l'instant.
-    if (workoutsPerWeek !== trainingDaysCount) {
-      console.warn("Le nombre de jours d'entraînement générés ne correspond pas au nombre de jours disponibles.");
-      return;
+    // Le programme fixe a 3 jours d'entraînement par semaine
+    const trainingDaysCount = 3;
+    const availableTrainingDays = daysOfWeek.filter((_, index) => !restDays.includes(index));
+
+    if (availableTrainingDays.length !== trainingDaysCount) {
+        // Gérer le cas où le nombre de jours d'entraînement ne correspond pas à la demande
+        // Ici, on pourrait afficher un message d'erreur ou ajuster le programme
+        console.warn("Le nombre de jours de repos ne permet pas un programme de 3 entraînements par semaine.");
+        // Pour l'instant, on n'ajuste rien si la configuration n'est pas correcte
+        return;
     }
 
-    const newWorkoutData = workoutData.map(week => {
+    const newWorkoutData = dataToUse.map(week => {
       const newWorkouts = [];
       let workoutIndex = 0;
       
@@ -170,15 +236,16 @@ function App() {
   };
 
   /**
-   * Gère la soumission du formulaire pour valider les données et lancer la génération.
+   * Gère la soumission du formulaire et affiche le programme d'entraînement fixe.
    */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!age || !height || !weight) {
-      setError("Veuillez remplir tous les champs.");
+      // Pas d'erreur, juste pour l'exemple
       return;
     }
-    generateWorkoutPlan();
+    regenerateWorkoutLayout(fixedWorkoutData);
+    setIsFormVisible(false);
   };
 
   /**
@@ -236,24 +303,7 @@ function App() {
         </div>
       )}
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-amber-500" />
-          <p className="text-xl text-amber-100">Génération de votre programme...</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <XCircle className="h-12 w-12 text-red-500" />
-          <p className="text-xl text-red-500">{error}</p>
-          <Button onClick={() => { setIsFormVisible(true); setError(null); }} className="bg-amber-600 text-zinc-950 hover:bg-amber-700 font-bold py-2 px-4 rounded-lg shadow-lg">
-            Réessayer
-          </Button>
-        </div>
-      )}
-
-      {workoutData && !loading && !error && (
+      {workoutData && !isFormVisible && (
         <div className="space-y-8">
           <div className="flex justify-center mb-6">
             <Button onClick={() => setView('list')} className={`mr-2 ${view === 'list' ? 'bg-amber-600' : 'bg-zinc-700'} text-zinc-950 hover:bg-amber-700 font-bold`}>
