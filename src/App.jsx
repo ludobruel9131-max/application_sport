@@ -3,26 +3,47 @@ import { BrowserRouter, Routes, Route, Outlet, NavLink, useParams, useNavigate, 
 import { Dumbbell, User, PlusCircle, Settings, LayoutDashboard, ChevronRight, Trash2, Pause, Play, RotateCcw, Star, Search, Filter, Trophy, BookOpenText, BarChart2, Home, BarChart, Calendar, List, X, PlayCircle, Clock, ChevronDown, Check } from "lucide-react";
 import { ToastContainer, toast } from 'react-toastify';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Separator } from './components/ui/separator';
-import { Slot } from "@radix-ui/react-slot";
-import { cva } from "class-variance-authority";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { v4 as uuidv4 } from 'uuid';
 
+// Imports Firebase
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, setDoc, onSnapshot, collection, query, where, getDocs, updateDoc, deleteDoc } from "firebase/firestore";
 
-import { v4 as uuidv4 } from 'uuid';
+// Imports Radix UI et d'autres utilitaires
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
+import { cva } from "class-variance-authority";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { Slot } from "@radix-ui/react-slot";
 
-// Composants Shadcn UI
+
+// Les composants UI sont maintenant inclus directement dans le fichier App.jsx pour éviter les erreurs d'importation.
+
+// Utility function for Tailwind class merging
 function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
+
+// Composants Shadcn UI
+const Separator = React.forwardRef(
+  ({ className, orientation = "horizontal", decorative = true, ...props }, ref) => (
+    <div
+      ref={ref}
+      role={decorative ? "none" : undefined}
+      className={cn(
+        "shrink-0 bg-zinc-800",
+        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        className
+      )}
+      {...props}
+    />
+  )
+);
+Separator.displayName = "Separator";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -1077,7 +1098,7 @@ const History = () => {
   );
 };
 
-const SettingsComponent = () => { // Le nom du composant a été modifié pour éviter le conflit de déclaration.
+const SettingsComponent = () => { 
   const { state, setState, db, userId, appId } = useContext(AppContext);
   const [profile, setProfile] = useState(state.profile);
 
@@ -1322,7 +1343,7 @@ const App = () => {
             <Route path="workouts" element={<Workouts />} />
             <Route path="session" element={<Session />} />
             <Route path="history" element={<History />} />
-            <Route path="settings" element={<SettingsComponent />} /> {/* Le nom du composant a été mis à jour ici */}
+            <Route path="settings" element={<SettingsComponent />} />
           </Route>
         </Routes>
       </BrowserRouter>
