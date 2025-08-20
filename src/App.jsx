@@ -36,16 +36,7 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Curls biceps", "sets": 3, "reps": "10-15" },
-          { "name": "Extensions triceps", "sets": 3, "reps": "10-15" },
-          { "name": "Presse à cuisses", "sets": 3, "reps": "12-15" },
-          { "name": "Mollets assis", "sets": 3, "reps": "15-20" },
-          { "name": "Crunchs", "sets": 3, "reps": "20" }
-        ]
-      },
+      { "day": "Vendredi", "exercises": [] },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -76,16 +67,7 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Curls biceps", "sets": 4, "reps": "10-12" },
-          { "name": "Extensions triceps", "sets": 4, "reps": "10-12" },
-          { "name": "Presse à cuisses", "sets": 4, "reps": "10-12" },
-          { "name": "Mollets assis", "sets": 4, "reps": "12-15" },
-          { "name": "Crunchs", "sets": 4, "reps": "15-20" }
-        ]
-      },
+      { "day": "Vendredi", "exercises": [] },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -116,16 +98,7 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Curls biceps", "sets": 4, "reps": "8-10" },
-          { "name": "Extensions triceps", "sets": 4, "reps": "8-10" },
-          { "name": "Presse à cuisses", "sets": 4, "reps": "8-10" },
-          { "name": "Mollets assis", "sets": 4, "reps": "10-12" },
-          { "name": "Crunchs", "sets": 4, "reps": "15" }
-        ]
-      },
+      { "day": "Vendredi", "exercises": [] },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -156,16 +129,7 @@ const fixedWorkoutData = [
         ]
       },
       { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Curls biceps", "sets": 2, "reps": "10-15" },
-          { "name": "Extensions triceps", "sets": 2, "reps": "10-15" },
-          { "name": "Presse à cuisses", "sets": 2, "reps": "12-15" },
-          { "name": "Mollets assis", "sets": 2, "reps": "15-20" },
-          { "name": "Crunchs", "sets": 2, "reps": "20" }
-        ]
-      },
+      { "day": "Vendredi", "exercises": [] },
       { "day": "Samedi", "exercises": [] },
       { "day": "Dimanche", "exercises": [] }
     ]
@@ -183,15 +147,17 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
 
   const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
   const trainingDaysCount = 3;
-  const availableTrainingDays = daysOfWeek.filter((_, index) => !restDays.includes(index));
-
-  if (availableTrainingDays.length !== trainingDaysCount) {
-      console.warn("Le nombre de jours de repos ne permet pas un programme de 3 entraînements par semaine. Le programme par défaut sera affiché.");
-      // Retourne une copie des données originales pour ne pas les modifier
-      return JSON.parse(JSON.stringify(dataToUse));
+  
+  // Compte le nombre de jours d'entraînement sélectionnés
+  const selectedTrainingDaysCount = 7 - restDays.length;
+  if (selectedTrainingDaysCount !== trainingDaysCount) {
+    console.warn(`Le programme est conçu pour ${trainingDaysCount} jours d'entraînement. Vous avez sélectionné ${selectedTrainingDaysCount} jours.`);
   }
 
-  const newWorkoutData = dataToUse.map(week => {
+  const newWorkoutData = JSON.parse(JSON.stringify(dataToUse));
+
+  newWorkoutData.forEach(week => {
+    const workoutsToAssign = week.workouts.filter(w => w.exercises.length > 0);
     const newWorkouts = [];
     let workoutIndex = 0;
     
@@ -199,15 +165,17 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
       if (restDays.includes(i)) {
         newWorkouts.push({ day: daysOfWeek[i], exercises: [] }); // Jour de repos
       } else {
-        // Associe les entraînements du programme fixe aux jours d'entraînement disponibles.
-        if (workoutIndex < week.workouts.length) {
-           newWorkouts.push({ ...week.workouts[workoutIndex], day: daysOfWeek[i] });
-           workoutIndex++;
+        if (workoutIndex < workoutsToAssign.length) {
+          newWorkouts.push({ ...workoutsToAssign[workoutIndex], day: daysOfWeek[i] });
+          workoutIndex++;
+        } else {
+          newWorkouts.push({ day: daysOfWeek[i], exercises: [] });
         }
       }
     }
-    return { ...week, workouts: newWorkouts };
+    week.workouts = newWorkouts;
   });
+
   return newWorkoutData;
 };
 
@@ -250,11 +218,12 @@ function App() {
    */
   const handleToggleRestDay = (dayIndex) => {
     setRestDays(prevRestDays => {
+      const selectedTrainingDaysCount = 7 - prevRestDays.length;
       if (prevRestDays.includes(dayIndex)) {
         return prevRestDays.filter(day => day !== dayIndex);
       } else {
         // Le programme fixe a 3 jours d'entraînement, on ne peut pas avoir plus de 4 jours de repos.
-        if (prevRestDays.length >= 4) {
+        if (selectedTrainingDaysCount <= 3) {
           console.warn("Vous ne pouvez pas sélectionner plus de 4 jours de repos avec ce programme.");
           return prevRestDays;
         }
