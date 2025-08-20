@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { PlusCircle } from "lucide-react";
 import { uid } from "../data";
-import { useApp } from "../App";
+import { AppContext } from "../App";
 
 function CreateCustomWorkout() {
-  const { state, setState } = useApp();
+  const { state, setState } = useContext(AppContext);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
