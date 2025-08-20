@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { PlusCircle, Pen, Trash2 } from "lucide-react";
 import { uid } from "../data";
-import { useApp } from "../App";
+import { AppContext } from "../App";
 import { toast } from "react-toastify";
 
 function CustomWorkout() {
-  const { state, setState } = useApp();
+  const { state, setState } = useContext(AppContext);
   const { id } = useParams();
   const navigate = useNavigate();
 
