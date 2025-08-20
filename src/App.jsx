@@ -1077,7 +1077,7 @@ const History = () => {
   );
 };
 
-const Settings = () => {
+const SettingsComponent = () => { // Le nom du composant a été modifié pour éviter le conflit de déclaration.
   const { state, setState, db, userId, appId } = useContext(AppContext);
   const [profile, setProfile] = useState(state.profile);
 
@@ -1322,7 +1322,7 @@ const App = () => {
             <Route path="workouts" element={<Workouts />} />
             <Route path="session" element={<Session />} />
             <Route path="history" element={<History />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="settings" element={<SettingsComponent />} /> {/* Le nom du composant a été mis à jour ici */}
           </Route>
         </Routes>
       </BrowserRouter>
