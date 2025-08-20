@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Pause, Play, RotateCcw } from "lucide-react";
-
-import { useApp } from "../App";
+import { AppContext } from "../App";
 
 function ActiveSession() {
-  const { state, setState } = useApp();
+  const { state, setState } = useContext(AppContext);
   const navigate = useNavigate();
   const [session, setSession] = useState(state.activeSession);
   const timerRef = useRef(null);
