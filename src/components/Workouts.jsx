@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { ChevronRight } from "lucide-react";
-import { useApp } from "../App";
+import { AppContext } from "../App";
 import { generateAutoWorkout } from "../data";
 
 const WorkoutCard = ({ workout }) => (
@@ -21,7 +21,7 @@ const WorkoutCard = ({ workout }) => (
 );
 
 function Workouts() {
-  const { state, setState } = useApp();
+  const { state, setState } = useContext(AppContext);
   const [auto, setAuto] = useState(null);
 
   useEffect(() => {
