@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Trophy } from "lucide-react";
-import { useApp } from "../App";
+import { AppContext } from "../App";
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 function Dashboard() {
-  const { state } = useApp();
+  const { state } = useContext(AppContext);
   const data = [
     { name: 'Group A', value: state.profile.goals.caloriesGoal },
     { name: 'Group B', value: state.profile.goals.proteinGoal },
