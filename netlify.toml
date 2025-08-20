@@ -1,4 +1,3 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install && npm install date-fns && npm run build"
   publish = "build"
-  base = ""
