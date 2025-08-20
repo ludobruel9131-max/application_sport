@@ -173,6 +173,45 @@ const fixedWorkoutData = [
 ];
 
 /**
+ * Fonction pure pour générer le nouveau programme d'entraînement en fonction des jours de repos.
+ * @param {array} dataToUse - Les données de programme à utiliser (le programme fixe dans ce cas).
+ * @param {array} restDays - Les indices des jours de repos.
+ * @returns {array} Le programme d'entraînement mis à jour.
+ */
+const getNewWorkoutLayout = (dataToUse, restDays) => {
+  if (!dataToUse) return null;
+
+  const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const trainingDaysCount = 3;
+  const availableTrainingDays = daysOfWeek.filter((_, index) => !restDays.includes(index));
+
+  if (availableTrainingDays.length !== trainingDaysCount) {
+      console.warn("Le nombre de jours de repos ne permet pas un programme de 3 entraînements par semaine. Le programme par défaut sera affiché.");
+      // Retourne une copie des données originales pour ne pas les modifier
+      return JSON.parse(JSON.stringify(dataToUse));
+  }
+
+  const newWorkoutData = dataToUse.map(week => {
+    const newWorkouts = [];
+    let workoutIndex = 0;
+    
+    for (let i = 0; i < 7; i++) {
+      if (restDays.includes(i)) {
+        newWorkouts.push({ day: daysOfWeek[i], exercises: [] }); // Jour de repos
+      } else {
+        // Associe les entraînements du programme fixe aux jours d'entraînement disponibles.
+        if (workoutIndex < week.workouts.length) {
+           newWorkouts.push({ ...week.workouts[workoutIndex], day: daysOfWeek[i] });
+           workoutIndex++;
+        }
+      }
+    }
+    return { ...week, workouts: newWorkouts };
+  });
+  return newWorkoutData;
+};
+
+/**
  * Composant principal de l'application.
  * Gère l'état de l'application, le formulaire de saisie et l'affichage du programme d'entraînement.
  */
@@ -186,65 +225,22 @@ function App() {
   const [view, setView] = useState('list'); // 'list' ou 'calendar'
   const [restDays, setRestDays] = useState([0, 6]); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
 
-  // Mettez à jour le programme lorsque les jours de repos changent
+  // Met à jour le programme lorsque les jours de repos changent.
   useEffect(() => {
     if (workoutData) {
-      regenerateWorkoutLayout(workoutData);
+      // Re-génère le layout du programme pour refléter les nouveaux jours de repos.
+      setWorkoutData(getNewWorkoutLayout(fixedWorkoutData, restDays));
     }
   }, [restDays]);
-
-  /**
-   * Re-distribue les entraînements en fonction des jours de repos sélectionnés.
-   * @param {array} dataToUse - Les données de programme à utiliser.
-   */
-  const regenerateWorkoutLayout = (dataToUse) => {
-    if (!dataToUse) return;
-
-    const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-    
-    // Le programme fixe a 3 jours d'entraînement par semaine
-    const trainingDaysCount = 3;
-    const availableTrainingDays = daysOfWeek.filter((_, index) => !restDays.includes(index));
-
-    if (availableTrainingDays.length !== trainingDaysCount) {
-        // Gérer le cas où le nombre de jours d'entraînement ne correspond pas à la demande
-        // Ici, on pourrait afficher un message d'erreur ou ajuster le programme
-        console.warn("Le nombre de jours de repos ne permet pas un programme de 3 entraînements par semaine.");
-        // Pour l'instant, on n'ajuste rien si la configuration n'est pas correcte
-        return;
-    }
-
-    const newWorkoutData = dataToUse.map(week => {
-      const newWorkouts = [];
-      let workoutIndex = 0;
-      
-      for (let i = 0; i < 7; i++) {
-        if (restDays.includes(i)) {
-          newWorkouts.push({ day: daysOfWeek[i], exercises: [] }); // Jour de repos
-        } else {
-          // Si le programme généré a plus de jours que le nombre de jours d'entraînement disponibles,
-          // on peut potentiellement en ignorer certains.
-          if (workoutIndex < week.workouts.length) {
-             newWorkouts.push({ ...week.workouts[workoutIndex], day: daysOfWeek[i] });
-             workoutIndex++;
-          }
-        }
-      }
-      return { ...week, workouts: newWorkouts };
-    });
-    setWorkoutData(newWorkoutData);
-  };
 
   /**
    * Gère la soumission du formulaire et affiche le programme d'entraînement fixe.
    */
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!age || !height || !weight) {
-      // Pas d'erreur, juste pour l'exemple
-      return;
-    }
-    regenerateWorkoutLayout(fixedWorkoutData);
+    // Charge directement le programme d'entraînement fixe.
+    const initialWorkoutLayout = getNewWorkoutLayout(fixedWorkoutData, restDays);
+    setWorkoutData(initialWorkoutLayout);
     setIsFormVisible(false);
   };
 
@@ -257,6 +253,11 @@ function App() {
       if (prevRestDays.includes(dayIndex)) {
         return prevRestDays.filter(day => day !== dayIndex);
       } else {
+        // Le programme fixe a 3 jours d'entraînement, on ne peut pas avoir plus de 4 jours de repos.
+        if (prevRestDays.length >= 4) {
+          console.warn("Vous ne pouvez pas sélectionner plus de 4 jours de repos avec ce programme.");
+          return prevRestDays;
+        }
         return [...prevRestDays, dayIndex].sort((a, b) => a - b);
       }
     });
