@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, onSnapshot, collection, addDoc, query, where } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 
 // Icônes en SVG pour éviter les problèmes d'import
 const HomeIcon = () => (
@@ -143,8 +143,6 @@ const Profile = () => (
 
 // Composant principal de l'application
 export default function App() {
-  const [appId, setAppId] = useState(null);
-  const [db, setDb] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -158,11 +156,7 @@ export default function App() {
         const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
         const app = initializeApp(firebaseConfig);
-        const firestoreDb = getFirestore(app);
         const firebaseAuth = getAuth(app);
-        
-        setAppId(providedAppId);
-        setDb(firestoreDb);
 
         const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
           if (currentUser) {
@@ -186,6 +180,14 @@ export default function App() {
 
     initFirebase();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-neutral-900">
+        <div className="text-xl font-semibold text-neutral-400">Chargement...</div>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch(currentPage) {
