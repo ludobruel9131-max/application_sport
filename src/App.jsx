@@ -1,170 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Calendar, List } from 'lucide-react';
+import React, { useState, useEffect, createContext } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Button } from "./components/ui/button";
+import { Calendar, List } from "lucide-react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { initializeApp } from "firebase/app";
+import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-/**
- * Programme d'entraînement fixe pour l'exemple.
- * Ce programme a 3 jours d'entraînement par semaine.
- */
-const fixedWorkoutData = [
-  {
-    "week": 1,
-    "description": "Cette semaine est axée sur l'établissement d'une base solide et la familiarisation avec les mouvements. Concentrez-vous sur la forme et la connexion esprit-muscle.",
-    "workouts": [
-      {
-        "day": "Lundi",
-        "exercises": [
-          { "name": "Squats", "sets": 3, "reps": "8-12" },
-          { "name": "Développé couché", "sets": 3, "reps": "8-12" },
-          { "name": "Tractions (assistées si nécessaire)", "sets": 3, "reps": "6-10" },
-          { "name": "Planche", "sets": 3, "reps": "45s" }
-        ]
-      },
-      { "day": "Mardi", "exercises": [] },
-      {
-        "day": "Mercredi",
-        "exercises": [
-          { "name": "Soulevé de terre roumain", "sets": 3, "reps": "10-15" },
-          { "name": "Fentes", "sets": 3, "reps": "10-15 (par jambe)" },
-          { "name": "Développé épaules", "sets": 3, "reps": "8-12" },
-          { "name": "Élévations latérales", "sets": 3, "reps": "12-15" },
-          { "name": "Gainage latéral", "sets": 3, "reps": "30s (par côté)" }
-        ]
-      },
-      { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Rowing barre", "sets": 3, "reps": "8-12" },
-          { "name": "Fentes (inversées)", "sets": 3, "reps": "8-12 (par jambe)" },
-          { "name": "Dips (assistés si nécessaire)", "sets": 3, "reps": "6-10" },
-          { "name": "Curl biceps", "sets": 3, "reps": "10-15" },
-          { "name": "Extensions triceps", "sets": 3, "reps": "10-15" }
-        ]
-      },
-      { "day": "Samedi", "exercises": [] },
-      { "day": "Dimanche", "exercises": [] }
-    ]
-  },
-  {
-    "week": 2,
-    "description": "Augmentation du volume d'entraînement pour stimuler la croissance musculaire. Visez à augmenter les charges ou le nombre de répétitions par rapport à la semaine précédente.",
-    "workouts": [
-      {
-        "day": "Lundi",
-        "exercises": [
-          { "name": "Squats", "sets": 4, "reps": "8-10" },
-          { "name": "Développé couché", "sets": 4, "reps": "8-10" },
-          { "name": "Tractions (assistées)", "sets": 4, "reps": "8-10" },
-          { "name": "Planche", "sets": 4, "reps": "45s" }
-        ]
-      },
-      { "day": "Mardi", "exercises": [] },
-      {
-        "day": "Mercredi",
-        "exercises": [
-          { "name": "Soulevé de terre roumain", "sets": 4, "reps": "10-12" },
-          { "name": "Fentes", "sets": 4, "reps": "10-12 (par jambe)" },
-          { "name": "Développé épaules", "sets": 4, "reps": "8-10" },
-          { "name": "Élévations latérales", "sets": 4, "reps": "10-12" },
-          { "name": "Gainage latéral", "sets": 4, "reps": "30s (par côté)" }
-        ]
-      },
-      { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Rowing barre", "sets": 4, "reps": "8-10" },
-          { "name": "Fentes (inversées)", "sets": 4, "reps": "8-10 (par jambe)" },
-          { "name": "Dips (assistés)", "sets": 4, "reps": "8-10" },
-          { "name": "Curl biceps", "sets": 4, "reps": "10-12" },
-          { "name": "Extensions triceps", "sets": 4, "reps": "10-12" }
-        ]
-      },
-      { "day": "Samedi", "exercises": [] },
-      { "day": "Dimanche", "exercises": [] }
-    ]
-  },
-  {
-    "week": 3,
-    "description": "Cette semaine est plus intense pour choquer les muscles et favoriser la croissance. Visez à augmenter les charges tout en maintenant une bonne forme.",
-    "workouts": [
-      {
-        "day": "Lundi",
-        "exercises": [
-          { "name": "Squats", "sets": 4, "reps": "6-8" },
-          { "name": "Développé couché", "sets": 4, "reps": "6-8" },
-          { "name": "Tractions (assistées)", "sets": 4, "reps": "6-8" },
-          { "name": "Planche", "sets": 4, "reps": "60s" }
-        ]
-      },
-      { "day": "Mardi", "exercises": [] },
-      {
-        "day": "Mercredi",
-        "exercises": [
-          { "name": "Soulevé de terre roumain", "sets": 4, "reps": "8-10" },
-          { "name": "Fentes", "sets": 4, "reps": "8-10 (par jambe)" },
-          { "name": "Développé épaules", "sets": 4, "reps": "6-8" },
-          { "name": "Élévations latérales", "sets": 4, "reps": "8-10" },
-          { "name": "Gainage latéral", "sets": 4, "reps": "45s (par côté)" }
-        ]
-      },
-      { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Rowing barre", "sets": 4, "reps": "6-8" },
-          { "name": "Fentes (inversées)", "sets": 4, "reps": "6-8 (par jambe)" },
-          { "name": "Dips (assistés)", "sets": 4, "reps": "6-8" },
-          { "name": "Curl biceps", "sets": 4, "reps": "8-10" },
-          { "name": "Extensions triceps", "sets": 4, "reps": "8-10" }
-        ]
-      },
-      { "day": "Samedi", "exercises": [] },
-      { "day": "Dimanche", "exercises": [] }
-    ]
-  },
-  {
-    "week": 4,
-    "description": "Une semaine de 'deload' ou de récupération active pour permettre à votre corps de se reconstruire et de se préparer au prochain cycle. Baissez les charges et le volume tout en maintenant la forme.",
-    "workouts": [
-      {
-        "day": "Lundi",
-        "exercises": [
-          { "name": "Squats", "sets": 2, "reps": "8-12" },
-          { "name": "Développé couché", "sets": 2, "reps": "8-12" },
-          { "name": "Tractions (assistées)", "sets": 2, "reps": "8-12" },
-          { "name": "Planche", "sets": 2, "reps": "45s" }
-        ]
-      },
-      { "day": "Mardi", "exercises": [] },
-      {
-        "day": "Mercredi",
-        "exercises": [
-          { "name": "Soulevé de terre roumain", "sets": 2, "reps": "10-15" },
-          { "name": "Fentes", "sets": 2, "reps": "10-15 (par jambe)" },
-          { "name": "Développé épaules", "sets": 2, "reps": "8-12" },
-          { "name": "Élévations latérales", "sets": 2, "reps": "12-15" },
-          { "name": "Gainage latéral", "sets": 2, "reps": "30s (par côté)" }
-        ]
-      },
-      { "day": "Jeudi", "exercises": [] },
-      {
-        "day": "Vendredi",
-        "exercises": [
-          { "name": "Rowing barre", "sets": 2, "reps": "8-12" },
-          { "name": "Fentes (inversées)", "sets": 2, "reps": "8-12 (par jambe)" },
-          { "name": "Dips (assistés)", "sets": 2, "reps": "8-12" },
-          { "name": "Curl biceps", "sets": 2, "reps": "10-15" },
-          { "name": "Extensions triceps", "sets": 2, "reps": "10-15" }
-        ]
-      },
-      { "day": "Samedi", "exercises": [] },
-      { "day": "Dimanche", "exercises": [] }
-    ]
-  }
-];
+// Importez tous les composants et les données nécessaires
+import Dashboard from "./components/Dashboard";
+import Workouts from "./components/Workouts";
+import Library from "./components/Library";
+import CustomWorkout from "./components/CustomWorkout";
+import CreateCustomWorkout from "./components/CreateCustomWorkout";
+import MyCustomWorkouts from "./components/MyCustomWorkouts";
+import SettingsPage from "./components/SettingsPage";
+import Shell from "./components/Shell";
+import ActiveSession from "./components/ActiveSession";
+import { fixedWorkoutData, defaultProfile } from "./data";
 
 /**
  * Fonction pure pour générer le nouveau programme d'entraînement en fonction des jours de repos.
@@ -202,11 +57,20 @@ const getNewWorkoutLayout = (dataToUse, restDays) => {
   return newWorkoutData;
 };
 
-/**
- * Composant principal de l'application.
- * Gère l'état de l'application et l'affichage du programme d'entraînement.
- */
+// Crée le contexte et l'exporte pour qu'il soit utilisé par les composants enfants
+export const AppContext = createContext();
+
 function App() {
+  const [state, setState] = useState(() => {
+    const saved = localStorage.getItem("app_state");
+    return saved ? JSON.parse(saved) : defaultProfile;
+  });
+
+  const [db, setDb] = useState(null);
+  const [auth, setAuth] = useState(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [userId, setUserId] = useState(null);
+
   const [workoutData, setWorkoutData] = useState(null);
   const [view, setView] = useState('list'); // 'list' ou 'calendar'
   const [restDays, setRestDays] = useState([0, 6]); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
@@ -224,6 +88,44 @@ function App() {
     }
   }, [restDays]);
 
+  // Initialize Firebase and set up authentication
+  useEffect(() => {
+    try {
+      const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+      if (!firebaseConfig) {
+        console.error("Firebase config is not defined.");
+        return;
+      }
+
+      const app = initializeApp(firebaseConfig);
+      const firestoreDb = getFirestore(app);
+      const firebaseAuth = getAuth(app);
+
+      setDb(firestoreDb);
+      setAuth(firebaseAuth);
+
+      const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
+        if (user) {
+          setUserId(user.uid);
+          setIsAuthReady(true);
+        } else {
+          if (typeof __initial_auth_token !== 'undefined') {
+            await signInWithCustomToken(firebaseAuth, __initial_auth_token);
+          } else {
+            await signInAnonymously(firebaseAuth);
+          }
+        }
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Failed to initialize Firebase:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("app_state", JSON.stringify(state));
+  }, [state]);
+
   /**
    * Gère le basculement d'un jour de repos.
    * La logique a été corrigée pour maintenir 3 jours d'entraînement.
@@ -235,114 +137,42 @@ function App() {
       const currentRestDayCount = prevRestDays.length;
 
       if (isRestDay) {
-        // Le programme fixe a 3 jours d'entraînement, on ne peut pas avoir plus de 4 jours de repos.
         if (currentRestDayCount > 4) {
           console.warn("Le programme est conçu pour 3 jours d'entraînement. Veuillez en sélectionner un pour le remplacer.");
           return prevRestDays;
         }
         return prevRestDays.filter(day => day !== dayIndex);
       } else {
-        // Ajoute un jour de repos, si on a pas déjà 4 jours de repos.
         if (currentRestDayCount < 4) {
             return [...prevRestDays, dayIndex].sort((a, b) => a - b);
         } else {
-             console.warn("Vous ne pouvez pas ajouter plus de jours de repos. Le programme a 3 jours d'entraînement.");
-             return prevRestDays;
+            console.warn("Vous ne pouvez pas ajouter plus de jours de repos. Le programme a 3 jours d'entraînement.");
+            return prevRestDays;
         }
       }
     });
   };
+
   const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-950 text-amber-100 p-8">
-      {workoutData && (
-        <div className="space-y-8">
-          <div className="flex justify-center mb-6">
-            <Button onClick={() => setView('list')} className={`mr-2 ${view === 'list' ? 'bg-amber-600' : 'bg-zinc-700'} text-zinc-950 hover:bg-amber-700 font-bold`}>
-              <List className="mr-2" /> Vue en liste
-            </Button>
-            <Button onClick={() => setView('calendar')} className={`${view === 'calendar' ? 'bg-amber-600' : 'bg-zinc-700'} text-zinc-950 hover:bg-amber-700 font-bold`}>
-              <Calendar className="mr-2" /> Vue calendrier
-            </Button>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <h3 className="text-xl font-bold w-full text-center mb-2">Jours de repos</h3>
-            {daysOfWeek.map((day, index) => (
-              <Button
-                key={index}
-                onClick={() => handleToggleRestDay(index)}
-                className={`w-28 ${restDays.includes(index) ? 'bg-zinc-800 border-2 border-red-500 text-red-500' : 'bg-zinc-700 text-amber-100'} hover:bg-zinc-600`}
-              >
-                {day}
-              </Button>
-            ))}
-          </div>
-
-          {view === 'list' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {workoutData.map((week, index) => (
-                <Card key={index} className="bg-zinc-900 border-zinc-800 text-amber-100 flex flex-col h-full">
-                  <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-amber-100">Semaine {week.week}</CardTitle>
-                    <p className="text-sm text-zinc-400">{week.description}</p>
-                  </CardHeader>
-                  <CardContent className="flex-1 flex flex-col justify-between">
-                    {week.workouts.map((day, dayIndex) => (
-                      <div key={dayIndex} className="mb-4 last:mb-0">
-                        <h3 className="text-lg font-semibold text-amber-100">{day.day}</h3>
-                        <ul className="list-disc list-inside space-y-1 mt-1">
-                          {day.exercises.length > 0 ? (
-                            day.exercises.map((exercise, exerciseIndex) => (
-                              <li key={exerciseIndex} className="text-sm text-amber-200">
-                                <span className="font-medium">{exercise.name}</span>: {exercise.sets} séries de {exercise.reps} répétitions
-                              </li>
-                            ))
-                          ) : (
-                            <li className="text-sm text-zinc-400">Jour de repos</li>
-                          )}
-                        </ul>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {view === 'calendar' && (
-            <div className="space-y-6">
-              {workoutData.map((week, weekIndex) => (
-                <div key={weekIndex}>
-                  <h2 className="text-2xl font-bold mb-4 text-center">Semaine {week.week}</h2>
-                  <div className="grid grid-cols-7 gap-2">
-                    {daysOfWeek.map((day, dayIndex) => (
-                      <Card key={dayIndex} className="bg-zinc-900 border-zinc-800 p-4 flex flex-col h-48 overflow-hidden">
-                        <h3 className="font-semibold text-center mb-2">{day}</h3>
-                        <div className="flex-1 overflow-auto">
-                          {week.workouts[dayIndex]?.exercises.length > 0 ? (
-                            <ul className="list-none space-y-1">
-                              {week.workouts[dayIndex].exercises.map((exercise, exIndex) => (
-                                <li key={exIndex} className="text-sm">
-                                  <span className="font-medium text-amber-200">{exercise.name}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="text-center text-zinc-500 text-sm italic">Repos</div>
-                          )}
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <AppContext.Provider value={{ state, setState, db, auth, userId, isAuthReady, workoutData }}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Shell />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/workouts" element={<Workouts />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/custom/:id" element={<CustomWorkout />} />
+            <Route path="/create-custom" element={<CreateCustomWorkout />} />
+            <Route path="/my-custom-workouts" element={<MyCustomWorkouts />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/active-session" element={<ActiveSession />} />
+          </Route>
+        </Routes>
+        <ToastContainer position="bottom-right" theme="dark" />
+      </BrowserRouter>
+    </AppContext.Provider>
   );
 }
 
