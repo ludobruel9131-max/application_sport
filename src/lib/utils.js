@@ -14,3 +14,10 @@ export function caloriesForExercise(duration, weight, exerciseMET) {
 export function formatDate(date) {
   return format(new Date(date), "PPP");
 }
+
+export function bmi(weight, height) {
+  // BMI = poids (kg) / taille (m)²
+  const heightInMeters = height / 100;
+  const bmiValue = weight / (heightInMeters * heightInMeters);
+  return bmiValue;
+}
