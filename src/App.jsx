@@ -3,6 +3,12 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
 
+// Déclaration de variables globales pour satisfaire le linter
+// Le Canvas fournira les valeurs réelles au moment de l'exécution
+const __app_id = '';
+const __firebase_config = '{}';
+const __initial_auth_token = '';
+
 // Composant principal de l'application
 export default function App() {
   const [appId, setAppId] = useState(null);
