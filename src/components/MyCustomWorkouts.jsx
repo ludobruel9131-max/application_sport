@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { ChevronRight, Trash2 } from "lucide-react";
-import { useApp } from "../App";
+import { AppContext } from "../App";
 
 const WorkoutCard = ({ workout }) => (
   <Card className="bg-zinc-900/60 border-zinc-800">
@@ -20,7 +20,7 @@ const WorkoutCard = ({ workout }) => (
 );
 
 function MyCustomWorkouts() {
-  const { state, setState } = useApp();
+  const { state, setState } = useContext(AppContext);
 
   const handleDelete = (id) => {
     setState((s) => ({
