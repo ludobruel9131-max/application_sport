@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
 
-// Icônes en SVG pour éviter les problèmes d'import
+// Icônes en SVG
 const HomeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
 );
@@ -19,16 +19,7 @@ const ProgressIcon = () => (
 const ProfileIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 );
-const TimerIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-);
 
-// Déclaration de variables globales pour satisfaire le linter
-const __app_id = '';
-const __firebase_config = '{}';
-const __initial_auth_token = '';
-
-// Données d'exercices factices pour la démonstration
 const EXERCISES_DATA = [
   { name: 'Tractions (prises larges)', type: 'Dos', subType: 'Grand Dorsal', difficulty: 'Avancé' },
   { name: 'Développé couché haltères', type: 'Pectoraux', subType: 'Faisceau médian', difficulty: 'Intermédiaire' },
@@ -40,7 +31,6 @@ const EXERCISES_DATA = [
   { name: 'Pompes (normales)', type: 'Pectoraux', subType: 'Faisceau médian', difficulty: 'Débutant' },
 ];
 
-// Composants pour chaque section de l'application
 const Dashboard = () => (
   <div className="p-6">
     <h2 className="text-2xl font-bold text-yellow-400 mb-4">Vue d'ensemble</h2>
@@ -61,29 +51,76 @@ const Dashboard = () => (
   </div>
 );
 
-const Workouts = () => (
-  <div className="p-6">
-    <h2 className="text-2xl font-bold text-yellow-400 mb-4">Séances du Jour</h2>
-    <div className="bg-neutral-800 p-6 rounded-2xl shadow-xl mb-6">
-      <h3 className="text-xl font-semibold text-neutral-200">Timer Intelligent</h3>
-      <p className="mt-2 text-neutral-400">Timer pour la séance (à implémenter).</p>
-      <div className="flex items-center justify-center mt-4">
-        <TimerIcon className="text-5xl text-amber-500" />
+const Workouts = ({ db, userId }) => {
+  const [workouts, setWorkouts] = useState([]);
+
+  useEffect(() => {
+    if (!db || !userId) return;
+
+    const workoutCollectionRef = collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/workouts`);
+    const q = query(workoutCollectionRef);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedWorkouts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setWorkouts(fetchedWorkouts);
+    });
+
+    return () => unsubscribe();
+  }, [db, userId]);
+
+  const addWorkout = async () => {
+    if (!db || !userId) {
+      console.error("Firebase non initialisé ou userId manquant.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/workouts`), {
+        date: new Date(),
+        exercise: "Nouvel exercice",
+        sets: 3,
+        reps: 10,
+        weight: 50
+      });
+      console.log("Entraînement ajouté avec succès !");
+    } catch (e) {
+      console.error("Erreur lors de l'ajout de l'entraînement : ", e);
+    }
+  };
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Mes Séances</h2>
+      <button
+        onClick={addWorkout}
+        className="bg-amber-500 text-neutral-900 font-bold py-2 px-4 rounded-xl shadow-lg transition-transform transform hover:scale-105 mb-6"
+      >
+        Ajouter un entraînement
+      </button>
+      <div className="bg-neutral-800 p-6 rounded-2xl shadow-xl">
+        <h3 className="text-xl font-semibold text-neutral-200 mb-4">Historique</h3>
+        {workouts.length > 0 ? (
+          <ul className="space-y-4">
+            {workouts.map(workout => (
+              <li key={workout.id} className="bg-neutral-900 p-4 rounded-xl flex flex-col shadow-sm">
+                <span className="text-lg font-medium text-neutral-200">{workout.exercise}</span>
+                <div className="text-sm text-neutral-500 mt-1">
+                  <p>Date: {workout.date.toDate().toLocaleDateString()}</p>
+                  <p>Séries: {workout.sets}, Répétitions: {workout.reps}, Poids: {workout.weight}kg</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-neutral-400">Pas d'entraînements enregistrés. Ajoutez-en un !</p>
+        )}
       </div>
     </div>
-    <div className="bg-neutral-800 p-6 rounded-2xl shadow-xl">
-      <h3 className="text-xl font-semibold text-neutral-200 mb-4">Exercices</h3>
-      <ul className="space-y-4">
-        {EXERCISES_DATA.slice(0, 3).map((ex, index) => (
-          <li key={index} className="bg-neutral-900 p-4 rounded-xl flex justify-between items-center shadow-sm">
-            <span className="text-lg text-neutral-200">{ex.name}</span>
-            <span className="text-sm text-neutral-500">{ex.type}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </div>
-);
+  );
+};
 
 const Library = () => (
   <div className="p-6">
@@ -126,37 +163,124 @@ const Progress = () => (
   </div>
 );
 
-const Profile = () => (
-  <div className="p-6">
-    <h2 className="text-2xl font-bold text-yellow-400 mb-4">Mon Profil</h2>
-    <div className="bg-neutral-800 p-6 rounded-2xl shadow-xl">
-      <h3 className="text-xl font-semibold text-neutral-200">Informations personnelles</h3>
-      <ul className="mt-4 text-neutral-400 space-y-2">
-        <li>Nom: (à venir)</li>
-        <li>Âge: (à venir)</li>
-        <li>Objectifs: (à venir)</li>
-        <li>Niveau: (à venir)</li>
-      </ul>
-    </div>
-  </div>
-);
+const Profile = ({ db, userId }) => {
+  const [profile, setProfile] = useState({ name: '', age: '', goals: '' });
+  const [message, setMessage] = useState('');
 
-// Composant principal de l'application
+  useEffect(() => {
+    if (!db || !userId) return;
+
+    const userDocRef = doc(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/profile/user_data`);
+
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setProfile(docSnap.data());
+      } else {
+        setProfile({ name: 'Nouveau Guerrier', age: '', goals: 'Définissez vos objectifs' });
+      }
+    }, (error) => {
+      console.error("Erreur lors de la récupération du profil :", error);
+    });
+
+    return () => unsubscribe();
+  }, [db, userId]);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!db || !userId) {
+      setMessage("Erreur: Firebase non initialisé ou userId manquant.");
+      return;
+    }
+
+    try {
+      await setDoc(doc(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/profile/user_data`), profile);
+      setMessage("Profil mis à jour avec succès !");
+    } catch (e) {
+      console.error("Erreur lors de la sauvegarde du profil : ", e);
+      setMessage("Erreur lors de la sauvegarde du profil.");
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfile(prevProfile => ({ ...prevProfile, [name]: value }));
+  };
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Mon Profil</h2>
+      <div className="bg-neutral-800 p-6 rounded-2xl shadow-xl">
+        <h3 className="text-xl font-semibold text-neutral-200 mb-4">Informations personnelles</h3>
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-neutral-400">Nom</label>
+            <input 
+              type="text"
+              id="name"
+              name="name"
+              value={profile.name}
+              onChange={handleChange}
+              className="w-full p-3 bg-neutral-900 text-neutral-200 rounded-xl border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="age" className="block text-neutral-400">Âge</label>
+            <input 
+              type="number"
+              id="age"
+              name="age"
+              value={profile.age}
+              onChange={handleChange}
+              className="w-full p-3 bg-neutral-900 text-neutral-200 rounded-xl border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="goals" className="block text-neutral-400">Objectifs</label>
+            <textarea
+              id="goals"
+              name="goals"
+              value={profile.goals}
+              onChange={handleChange}
+              rows="4"
+              className="w-full p-3 bg-neutral-900 text-neutral-200 rounded-xl border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-amber-500 text-neutral-900 font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:scale-105"
+          >
+            Sauvegarder
+          </button>
+        </form>
+        {message && (
+          <div className="mt-4 p-3 bg-green-500 text-white rounded-xl text-center">
+            {message}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [user, setUser] = useState(null);
+  const [db, setDb] = useState(null);
+  const [auth, setAuth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  // Hook useEffect pour gérer l'initialisation et l'authentification de Firebase.
   useEffect(() => {
     async function initFirebase() {
       try {
-        const providedAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
         const app = initializeApp(firebaseConfig);
         const firebaseAuth = getAuth(app);
+        const firestoreDb = getFirestore(app);
+
+        setDb(firestoreDb);
+        setAuth(firebaseAuth);
 
         const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
           if (currentUser) {
@@ -192,10 +316,10 @@ export default function App() {
   const renderPage = () => {
     switch(currentPage) {
       case 'dashboard': return <Dashboard />;
-      case 'workouts': return <Workouts />;
+      case 'workouts': return <Workouts db={db} userId={user?.uid} />;
       case 'library': return <Library />;
       case 'progress': return <Progress />;
-      case 'profile': return <Profile />;
+      case 'profile': return <Profile db={db} userId={user?.uid} />;
       default: return <Dashboard />;
     }
   };
