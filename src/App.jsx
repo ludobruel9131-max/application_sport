@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from "react";
-// import { useRef } from "react";
-import { BrowserRouter, Routes, Route, NavLink, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, AreaChart, Area } from "recharts";
-import { CalendarIcon, TimerIcon, Flame, Trophy, Settings, BarChart2, Dumbbell, Home, BookOpenText, ChevronRight, Star, Search, Filter, Play, Pause, RotateCcw, Crown, Bell, Heart, Gift, Shield, ArrowRight, CheckCircle2, Users, Circle, PlusCircle, Pen, Trash2 } from "lucide-react";
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Input } from "./components/ui/input";
-import { Switch } from "./components/ui/switch";
-import { Slider } from "./components/ui/slider";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/ui/select";
-import { Info } from "./components/Info";
-import { cn } from "./lib/utils";
-import { EXERCISES, equipmentOptions, defaultProfile, levels, goals, uid, bmi, formatDate, caloriesForExercise, generateAutoWorkout } from "./data";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import { useApp } from "./App"; // Assurez-vous d'avoir ce hook
 import Dashboard from "./components/Dashboard";
 import Workouts from "./components/Workouts";
 import Library from "./components/Library";
@@ -22,8 +13,7 @@ import MyCustomWorkouts from "./components/MyCustomWorkouts";
 import SettingsPage from "./components/SettingsPage";
 import Shell from "./components/Shell";
 import ActiveSession from "./components/ActiveSession";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { defaultProfile } from "./data"; // Assurez-vous d'avoir cette importation si elle est utilisée
 
 function App() {
   const [state, setState] = useState(() => {
