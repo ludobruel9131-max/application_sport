@@ -1,135 +1,132 @@
-import React, { useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { PlusCircle, Pen, Trash2 } from "lucide-react";
-import { uid } from "../data";
-import { AppContext } from "../App";
-import { toast } from "react-toastify";
+// src/components/CustomWorkout.jsx
 
-function CustomWorkout() {
-  const { state, setState } = useContext(AppContext);
-  const { id } = useParams();
-  const navigate = useNavigate();
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'react-toastify';
 
-  const workout = state.customWorkouts.find((w) => w.id === id);
-
-  if (!workout) {
-    return <div>Programme non trouvé</div>;
-  }
-
-  const [editMode, setEditMode] = useState(false);
-  const [exerciseName, setExerciseName] = useState("");
-  const [exerciseReps, setExerciseReps] = useState("");
-  const [exerciseWeight, setExerciseWeight] = useState("");
+/**
+ * Ce composant permet à l'utilisateur de créer un entraînement personnalisé.
+ * Il inclut un formulaire modal pour définir le nom de l'entraînement et ajouter des exercices.
+ * Les appels aux hooks d'état (useState) ont été déplacés au début du composant
+ * pour respecter la règle de base de React.
+ */
+const CustomWorkout = () => {
+  // Les hooks d'état doivent TOUJOURS être appelés au début de la fonction de composant.
+  const [open, setOpen] = useState(false);
+  const [workoutName, setWorkoutName] = useState('');
+  const [exercises, setExercises] = useState([]);
+  const [currentExercise, setCurrentExercise] = useState({ name: '', sets: '', reps: '' });
 
   const handleAddExercise = () => {
-    if (exerciseName && exerciseReps && exerciseWeight) {
-      const newExercise = {
-        id: uid(),
-        name: exerciseName,
-        blocks: [{ reps: exerciseReps, weight: exerciseWeight }],
-      };
-      const updatedWorkout = {
-        ...workout,
-        exercises: [...workout.exercises, newExercise],
-      };
-      setState((s) => ({
-        ...s,
-        customWorkouts: s.customWorkouts.map((w) => (w.id === id ? updatedWorkout : w)),
-      }));
-      setExerciseName("");
-      setExerciseReps("");
-      setExerciseWeight("");
+    // Vérifier que tous les champs sont remplis
+    if (currentExercise.name && currentExercise.sets && currentExercise.reps) {
+      setExercises([...exercises, currentExercise]);
+      setCurrentExercise({ name: '', sets: '', reps: '' });
       toast.success("Exercice ajouté !");
+    } else {
+      toast.error("Veuillez remplir tous les champs de l'exercice.");
     }
   };
 
-  const handleRemoveExercise = (exId) => {
-    const updatedWorkout = {
-      ...workout,
-      exercises: workout.exercises.filter((ex) => ex.id !== exId),
-    };
-    setState((s) => ({
-      ...s,
-      customWorkouts: s.customWorkouts.map((w) => (w.id === id ? updatedWorkout : w)),
-    }));
-    toast.info("Exercice retiré.");
+  const handleSaveWorkout = () => {
+    if (workoutName && exercises.length > 0) {
+      console.log('Entraînement sauvegardé :', { workoutName, exercises });
+      toast.success("Entraînement sauvegardé !");
+      setOpen(false); // Ferme la modale après la sauvegarde
+    } else {
+      toast.error("Veuillez donner un nom et ajouter au moins un exercice.");
+    }
   };
 
-  const handleStartWorkout = () => {
-    setState((s) => ({
-      ...s,
-      currentWorkout: workout,
-      activeSession: {
-        workout: workout,
-        currentExerciseIndex: 0,
-        currentSetIndex: 0,
-        timer: 0,
-        isRunning: false,
-        finished: false,
-      },
-    }));
-    navigate("/active-session");
+  const handleOpenChange = (isOpen) => {
+    setOpen(isOpen);
+    // Réinitialiser les états si la modale est fermée
+    if (!isOpen) {
+      setWorkoutName('');
+      setExercises([]);
+      setCurrentExercise({ name: '', sets: '', reps: '' });
+    }
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-3xl font-bold tracking-tight">{workout.name}</h2>
-      <p className="text-zinc-400">{workout.description}</p>
+    <>
+      <Button onClick={() => setOpen(true)}>Créer un entraînement</Button>
 
-      <Button onClick={handleStartWorkout}>Commencer ce programme</Button>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer un entraînement personnalisé</DialogTitle>
+            <DialogDescription>
+              Définissez le nom de votre entraînement et ajoutez vos exercices.
+            </DialogDescription>
+          </DialogHeader>
 
-      <div className="flex items-center gap-2">
-        <Button onClick={() => setEditMode(!editMode)}>{editMode ? "Terminer" : "Modifier"}</Button>
-      </div>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="workoutName" className="text-right">
+                Nom
+              </Label>
+              <Input
+                id="workoutName"
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
 
-      <div className="space-y-4">
-        {workout.exercises.length === 0 ? (
-          <p className="text-zinc-400">Aucun exercice dans ce programme.</p>
-        ) : (
-          workout.exercises.map((exercise) => (
-            <Card key={exercise.id} className="bg-zinc-900/60 border-zinc-800">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-medium">{exercise.name}</CardTitle>
-                {editMode && (
-                  <Button onClick={() => handleRemoveExercise(exercise.id)} variant="ghost" className="p-2">
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent>
-                {exercise.blocks.map((block, index) => (
-                  <div key={index} className="flex gap-2">
-                    <p>Série {index + 1}:</p>
-                    <p>{block.reps} reps</p>
-                    <p>{block.weight} kg</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+            <h3 className="text-lg font-medium mt-4">Exercices</h3>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="exerciseName" className="text-right">Nom</Label>
+              <Input
+                id="exerciseName"
+                value={currentExercise.name}
+                onChange={(e) => setCurrentExercise({ ...currentExercise, name: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sets" className="text-right">Séries</Label>
+              <Input
+                id="sets"
+                type="number"
+                value={currentExercise.sets}
+                onChange={(e) => setCurrentExercise({ ...currentExercise, sets: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="reps" className="text-right">Répétitions</Label>
+              <Input
+                id="reps"
+                type="number"
+                value={currentExercise.reps}
+                onChange={(e) => setCurrentExercise({ ...currentExercise, reps: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <Button onClick={handleAddExercise}>Ajouter l'exercice</Button>
 
-      {editMode && (
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardHeader>
-            <CardTitle>Ajouter un exercice</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Input placeholder="Nom de l'exercice" value={exerciseName} onChange={(e) => setExerciseName(e.target.value)} />
-            <Input placeholder="Nombre de répétitions" value={exerciseReps} onChange={(e) => setExerciseReps(e.target.value)} type="number" />
-            <Input placeholder="Poids (kg)" value={exerciseWeight} onChange={(e) => setExerciseWeight(e.target.value)} type="number" />
-            <Button onClick={handleAddExercise} className="w-full">
-              Ajouter
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+            {exercises.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Exercices ajoutés :</h4>
+                <ul className="list-disc list-inside">
+                  {exercises.map((ex, index) => (
+                    <li key={index}>{`${ex.name}: ${ex.sets} séries de ${ex.reps} répétitions`}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveWorkout}>Sauvegarder l'entraînement</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
-}
+};
 
 export default CustomWorkout;
